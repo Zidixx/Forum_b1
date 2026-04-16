@@ -1,0 +1,37 @@
+{{template "base" .}}
+{{define "content"}}
+<div class="auth-page">
+    <div class="auth-card card">
+        <h1 class="page-title">Inscription</h1>
+
+        {{if .Errors}}
+        <div class="alert alert-error">
+            {{range .Errors}}
+            <p>{{.}}</p>
+            {{end}}
+        </div>
+        {{end}}
+
+        <form action="/register" method="POST" class="form">
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-input" value="{{.Email}}" required>
+            </div>
+            <div class="form-group">
+                <label for="username" class="form-label">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" class="form-input" value="{{.Username}}" required minlength="3" maxlength="30">
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-input" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="confirm_password" class="form-label">Confirmer le mot de passe</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-input" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">S'inscrire</button>
+        </form>
+        <p class="auth-switch">Déjà un compte ? <a href="/login">Se connecter</a></p>
+    </div>
+</div>
+{{end}}

@@ -1,0 +1,10 @@
+{{template "base" .}}
+{{define "content"}}
+<div class="error-page">
+    <div class="error-card card">
+        <h1 class="error-code">{{.StatusCode}}</h1>
+        <p class="error-message">{{.Message}}</p>
+        <a href="/" class="btn btn-primary">Retour à l'accueil</a>
+    </div>
+</div>
+{{end}}

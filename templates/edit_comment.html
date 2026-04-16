@@ -1,0 +1,26 @@
+{{template "base" .}}
+{{define "content"}}
+<div class="form-page">
+    <div class="form-card card">
+        <h1 class="page-title">Modifier le commentaire</h1>
+
+        {{if .Errors}}
+        <div class="alert alert-error">
+            {{range .Errors}}
+            <p>{{.}}</p>
+            {{end}}
+        </div>
+        {{end}}
+
+        <form action="/comment/edit/{{.Comment.ID}}" method="POST" class="form">
+            <div class="form-group">
+                <textarea name="content" class="form-textarea" rows="5" required>{{.Comment.Content}}</textarea>
+            </div>
+            <div class="form-actions">
+                <a href="/post/{{.Comment.PostID}}" class="btn btn-secondary">Annuler</a>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{end}}

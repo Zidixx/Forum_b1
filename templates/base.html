@@ -1,0 +1,40 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum{{if .Title}} - {{.Title}}{{end}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="/" class="logo">Forum</a>
+            <nav class="nav">
+                {{if .User}}
+                    <span class="nav-user">{{.User.Username}}</span>
+                    <a href="/my-posts" class="nav-link">Mes posts</a>
+                    <a href="/liked-posts" class="nav-link">Posts aimés</a>
+                    <a href="/post/create" class="nav-link btn-primary">Nouveau post</a>
+                    <form action="/logout" method="POST" class="inline-form">
+                        <button type="submit" class="nav-link btn-secondary">Déconnexion</button>
+                    </form>
+                {{else}}
+                    <a href="/login" class="nav-link">Connexion</a>
+                    <a href="/register" class="nav-link btn-primary">Inscription</a>
+                {{end}}
+            </nav>
+        </div>
+    </header>
+    <main class="container main-content">
+        {{template "content" .}}
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <p>Forum &copy; 2026</p>
+        </div>
+    </footer>
+</body>
+</html>
+{{end}}

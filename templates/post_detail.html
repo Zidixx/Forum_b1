@@ -1,0 +1,121 @@
+{{template "base" .}}
+{{define "content"}}
+<article class="post-detail">
+    <div class="card">
+        <header class="post-detail-header">
+            <h1 class="page-title">{{.Post.Title}}</h1>
+            <div class="post-meta">
+                <span class="post-author">par {{.Post.Author}}</span>
+                <span class="post-date">{{.Post.CreatedAt.Format "02/01/2006 15:04"}}</span>
+                {{if .Post.UpdatedAt}}
+                    {{if ne (.Post.CreatedAt.Format "2006-01-02") (.Post.UpdatedAt.Format "2006-01-02")}}
+                    <span class="post-edited">(modifié le {{.Post.UpdatedAt.Format "02/01/2006 15:04"}})</span>
+                    {{end}}
+                {{end}}
+            </div>
+            <div class="post-categories">
+                {{range .Post.Categories}}
+                <span class="badge">{{.Name}}</span>
+                {{end}}
+            </div>
+        </header>
+
+        {{if .Post.ImagePath}}
+        <div class="post-image">
+            <img src="/static/uploads/{{.Post.ImagePath}}" alt="Image du post">
+        </div>
+        {{end}}
+
+        <div class="post-content">
+            {{.Post.Content}}
+        </div>
+
+        <div class="post-actions-bar">
+            <div class="reaction-buttons">
+                {{if .User}}
+                <form action="/post/react/{{.Post.ID}}" method="POST" class="inline-form">
+                    <input type="hidden" name="type" value="like">
+                    <button type="submit" class="reaction-btn{{if eq .Post.UserVote "like"}} active{{end}}">&#9650; {{.Post.Likes}}</button>
+                </form>
+                <form action="/post/react/{{.Post.ID}}" method="POST" class="inline-form">
+                    <input type="hidden" name="type" value="dislike">
+                    <button type="submit" class="reaction-btn{{if eq .Post.UserVote "dislike"}} active{{end}}">&#9660; {{.Post.Dislikes}}</button>
+                </form>
+                {{else}}
+                <span class="stat like">&#9650; {{.Post.Likes}}</span>
+                <span class="stat dislike">&#9660; {{.Post.Dislikes}}</span>
+                {{end}}
+            </div>
+
+            {{if .User}}
+                {{if eq .User.ID .Post.UserID}}
+                <div class="post-owner-actions">
+                    <a href="/post/edit/{{.Post.ID}}" class="btn btn-secondary btn-small">Modifier</a>
+                    <form action="/post/delete/{{.Post.ID}}" method="POST" class="inline-form" onsubmit="return confirm('Supprimer ce post ?')">
+                        <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
+                    </form>
+                </div>
+                {{end}}
+            {{end}}
+        </div>
+    </div>
+
+    <section class="comments-section">
+        <h2 class="section-title">Commentaires ({{len .Post.Comments}})</h2>
+
+        {{if .User}}
+        <div class="card comment-form-card">
+            <form action="/comment/create" method="POST" class="form">
+                <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                <div class="form-group">
+                    <textarea name="content" class="form-textarea" rows="3" placeholder="Écrire un commentaire..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Commenter</button>
+            </form>
+        </div>
+        {{end}}
+
+        {{range .Post.Comments}}
+        <div class="card comment-card" id="comment-{{.ID}}">
+            <div class="comment-header">
+                <span class="comment-author">{{.Author}}</span>
+                <span class="comment-date">{{.CreatedAt.Format "02/01/2006 15:04"}}</span>
+            </div>
+            <div class="comment-content">{{.Content}}</div>
+            <div class="comment-actions">
+                <div class="reaction-buttons">
+                    {{if $.User}}
+                    <form action="/comment/react/{{.ID}}" method="POST" class="inline-form">
+                        <input type="hidden" name="type" value="like">
+                        <input type="hidden" name="post_id" value="{{$.Post.ID}}">
+                        <button type="submit" class="reaction-btn small{{if eq .UserVote "like"}} active{{end}}">&#9650; {{.Likes}}</button>
+                    </form>
+                    <form action="/comment/react/{{.ID}}" method="POST" class="inline-form">
+                        <input type="hidden" name="type" value="dislike">
+                        <input type="hidden" name="post_id" value="{{$.Post.ID}}">
+                        <button type="submit" class="reaction-btn small{{if eq .UserVote "dislike"}} active{{end}}">&#9660; {{.Dislikes}}</button>
+                    </form>
+                    {{else}}
+                    <span class="stat like small">&#9650; {{.Likes}}</span>
+                    <span class="stat dislike small">&#9660; {{.Dislikes}}</span>
+                    {{end}}
+                </div>
+
+                {{if $.User}}
+                    {{if eq $.User.ID .UserID}}
+                    <div class="comment-owner-actions">
+                        <a href="/comment/edit/{{.ID}}" class="btn btn-secondary btn-small">Modifier</a>
+                        <form action="/comment/delete/{{.ID}}" method="POST" class="inline-form" onsubmit="return confirm('Supprimer ce commentaire ?')">
+                            <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
+                        </form>
+                    </div>
+                    {{end}}
+                {{end}}
+            </div>
+        </div>
+        {{else}}
+        <p class="empty-state">Aucun commentaire pour le moment.</p>
+        {{end}}
+    </section>
+</article>
+{{end}}
