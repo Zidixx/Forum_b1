@@ -151,16 +151,19 @@ func main() {
 
 	mux.Handle("/logout", userCtx(http.HandlerFunc(authHandler.Logout)))
 
-	// Profile routes
 	mux.Handle("/my-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.MyPosts))))
 	mux.Handle("/liked-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.LikedPosts))))
 
 	// Start server
-	port := "8080"
+	port := "8443"
 	if p := os.Getenv("PORT"); p != "" {
 		port = p
 	}
 
-	fmt.Printf("Forum démarré sur http://localhost:%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	fmt.Printf("Forum démarré en HTTPS sur https://localhost:%s\n", port)
+
+	err = http.ListenAndServeTLS(":"+port, "./tls/server.crt", "./tls/server.key", mux)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
