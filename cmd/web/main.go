@@ -154,15 +154,16 @@ func main() {
 	mux.Handle("/my-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.MyPosts))))
 	mux.Handle("/liked-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.LikedPosts))))
 
-	// Start server
 	port := "8443"
 	if p := os.Getenv("PORT"); p != "" {
 		port = p
 	}
 
-	fmt.Printf("Forum démarré en HTTPS sur https://localhost:%s\n", port)
+	protectedMux := middleware.RateLimiter(mux)
 
-	err = http.ListenAndServeTLS(":"+port, "./tls/server.crt", "./tls/server.key", mux)
+	fmt.Printf("Forum démarré en HTTPS sur https://localhost:%s (Avec Rate Limiting Anti-DDoS)\n", port)
+
+	err = http.ListenAndServeTLS(":"+port, "./tls/server.crt", "./tls/server.key", protectedMux)
 	if err != nil {
 		log.Fatal(err)
 	}
