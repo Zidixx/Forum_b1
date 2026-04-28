@@ -1,0 +1,21 @@
+# Compiled binary
+web
+
+# SQLite runtime files
+data/forum.db-shm
+data/forum.db-wal
+data/forum.db-journal
+
+# Uploads (user content)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.env
