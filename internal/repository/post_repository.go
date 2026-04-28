@@ -173,6 +173,71 @@ func (r *PostRepository) queryPosts(query string, args ...interface{}) ([]models
 	return posts, nil
 }
 
+func (r *PostRepository) Search(query string) ([]models.Post, error) {
+	q := "%" + query + "%"
+	return r.queryPosts(`
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		WHERE p.title LIKE ? OR p.content LIKE ?
+		ORDER BY p.created_at DESC
+		LIMIT 50
+	`, q, q)
+}
+
+func (r *PostRepository) FindTrending(limit int) ([]models.Post, error) {
+	return r.queryPosts(`
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		LEFT JOIN post_reactions pr ON p.id = pr.post_id AND pr.type = 'like'
+		GROUP BY p.id
+		ORDER BY COUNT(pr.id) DESC, p.created_at DESC
+		LIMIT ?
+	`, limit)
+}
+
+func (r *PostRepository) FindAllSorted(sort string) ([]models.Post, error) {
+	switch sort {
+	case "top":
+		return r.queryPosts(`
+			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+			FROM posts p
+			JOIN users u ON p.user_id = u.id
+			LEFT JOIN post_reactions pr ON p.id = pr.post_id AND pr.type = 'like'
+			GROUP BY p.id
+			ORDER BY COUNT(pr.id) DESC, p.created_at DESC
+		`)
+	case "hot":
+		return r.queryPosts(`
+			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+			FROM posts p
+			JOIN users u ON p.user_id = u.id
+			LEFT JOIN post_reactions pr ON p.id = pr.post_id AND pr.type = 'like'
+			LEFT JOIN comments c ON p.id = c.post_id
+			GROUP BY p.id
+			ORDER BY (COUNT(DISTINCT pr.id) + COUNT(DISTINCT c.id)) DESC, p.created_at DESC
+		`)
+	case "discussed":
+		return r.queryPosts(`
+			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+			FROM posts p
+			JOIN users u ON p.user_id = u.id
+			LEFT JOIN comments c ON p.id = c.post_id
+			GROUP BY p.id
+			ORDER BY COUNT(c.id) DESC, p.created_at DESC
+		`)
+	default:
+		return r.FindAll()
+	}
+}
+
+func (r *PostRepository) CountComments(postID int) (int, error) {
+	var count int
+	err := r.db.QueryRow("SELECT COUNT(*) FROM comments WHERE post_id = ?", postID).Scan(&count)
+	return count, err
+}
+
 func (r *PostRepository) Excerpt(content string, maxLen int) string {
 	if len(content) <= maxLen {
 		return content

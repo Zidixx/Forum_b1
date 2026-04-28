@@ -6,7 +6,6 @@ import (
 	"forum/internal/models"
 	"forum/internal/service"
 	"forum/internal/utils"
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,11 +13,11 @@ import (
 
 type CommentHandler struct {
 	commentService *service.CommentService
-	tmpl           *template.Template
+	tmpl           Renderer
 	errHandler     *ErrorHandler
 }
 
-func NewCommentHandler(commentService *service.CommentService, tmpl *template.Template, errHandler *ErrorHandler) *CommentHandler {
+func NewCommentHandler(commentService *service.CommentService, tmpl Renderer, errHandler *ErrorHandler) *CommentHandler {
 	return &CommentHandler{commentService: commentService, tmpl: tmpl, errHandler: errHandler}
 }
 

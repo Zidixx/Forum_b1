@@ -1,0 +1,42 @@
+{{template "base" .}}
+{{define "content"}}
+<div class="search-page">
+    <div class="search-page-header">
+        <h1 class="page-title">Recherche</h1>
+    </div>
+
+    <form action="/search" method="GET" style="margin-bottom:24px">
+        <input type="text" name="q" class="search-page-input" value="{{.Query}}" placeholder="Rechercher des posts..." autofocus>
+    </form>
+
+    {{if .Query}}
+    <p style="color:var(--text-muted);margin-bottom:16px;font-size:0.9rem">
+        {{if .Posts}}{{len .Posts}} résultat(s) pour "{{.Query}}"{{else}}Aucun résultat pour "{{.Query}}"{{end}}
+    </p>
+    {{end}}
+
+    <div class="feed">
+    {{range .Posts}}
+    <article class="post-card" onclick="window.location='/post/{{.Post.ID}}'">
+        <div class="post-card-top">
+            <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
+            <div class="post-card-body">
+                <div class="post-card-header">
+                    <span class="post-author-name">{{.Post.Author}}</span>
+                    <span class="post-dot">&middot;</span>
+                    <span class="post-timestamp">{{timeAgo .Post.CreatedAt}}</span>
+                </div>
+                <h3 class="post-card-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
+                <p class="post-card-text">{{.Excerpt}}</p>
+                {{if .Post.Categories}}
+                <div class="post-card-tags">
+                    {{range .Post.Categories}}<span class="badge">{{.Name}}</span>{{end}}
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </article>
+    {{end}}
+    </div>
+</div>
+{{end}}

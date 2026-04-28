@@ -5,14 +5,10 @@
         <h1 class="page-title">Modifier le commentaire</h1>
 
         {{if .Errors}}
-        <div class="alert alert-error">
-            {{range .Errors}}
-            <p>{{.}}</p>
-            {{end}}
-        </div>
+        <div class="alert alert-error">{{range .Errors}}<p>{{.}}</p>{{end}}</div>
         {{end}}
 
-        <form action="/comment/edit/{{.Comment.ID}}" method="POST" class="form">
+        <form action="/comment/edit/{{.Comment.ID}}" method="POST">
             <div class="form-group">
                 <textarea name="content" class="form-textarea" rows="5" required>{{.Comment.Content}}</textarea>
             </div>

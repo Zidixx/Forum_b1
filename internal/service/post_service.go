@@ -9,10 +9,11 @@ type PostService struct {
 	postRepo     *repository.PostRepository
 	catRepo      *repository.CategoryRepository
 	reactionRepo *repository.ReactionRepository
+	repostRepo   *repository.RepostRepository
 }
 
-func NewPostService(postRepo *repository.PostRepository, catRepo *repository.CategoryRepository, reactionRepo *repository.ReactionRepository) *PostService {
-	return &PostService{postRepo: postRepo, catRepo: catRepo, reactionRepo: reactionRepo}
+func NewPostService(postRepo *repository.PostRepository, catRepo *repository.CategoryRepository, reactionRepo *repository.ReactionRepository, repostRepo *repository.RepostRepository) *PostService {
+	return &PostService{postRepo: postRepo, catRepo: catRepo, reactionRepo: reactionRepo, repostRepo: repostRepo}
 }
 
 func (s *PostService) Create(post *models.Post, categoryIDs []int) error {
@@ -31,6 +32,15 @@ func (s *PostService) GetByID(id int, currentUserID int) (*models.Post, error) {
 
 func (s *PostService) GetAll(currentUserID int) ([]models.Post, error) {
 	posts, err := s.postRepo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+	s.enrichPosts(posts, currentUserID)
+	return posts, nil
+}
+
+func (s *PostService) GetAllSorted(sort string, currentUserID int) ([]models.Post, error) {
+	posts, err := s.postRepo.FindAllSorted(sort)
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +75,24 @@ func (s *PostService) GetLikedByUser(userID int) ([]models.Post, error) {
 	return posts, nil
 }
 
+func (s *PostService) GetTrending(limit int, currentUserID int) ([]models.Post, error) {
+	posts, err := s.postRepo.FindTrending(limit)
+	if err != nil {
+		return nil, err
+	}
+	s.enrichPosts(posts, currentUserID)
+	return posts, nil
+}
+
+func (s *PostService) Search(query string, currentUserID int) ([]models.Post, error) {
+	posts, err := s.postRepo.Search(query)
+	if err != nil {
+		return nil, err
+	}
+	s.enrichPosts(posts, currentUserID)
+	return posts, nil
+}
+
 func (s *PostService) Update(post *models.Post, categoryIDs []int) error {
 	return s.postRepo.Update(post, categoryIDs)
 }
@@ -91,8 +119,16 @@ func (s *PostService) enrichPost(post *models.Post, currentUserID int) {
 	post.Likes, post.Dislikes, _ = s.reactionRepo.CountPostReactions(post.ID)
 	cats, _ := s.catRepo.FindByPostID(post.ID)
 	post.Categories = cats
+	post.CommentCount, _ = s.postRepo.CountComments(post.ID)
+
+	if s.repostRepo != nil {
+		post.Reposts, _ = s.repostRepo.Count(post.ID)
+	}
 
 	if currentUserID > 0 {
 		post.UserVote, _ = s.reactionRepo.GetPostReaction(currentUserID, post.ID)
+		if s.repostRepo != nil {
+			post.UserReposted, _ = s.repostRepo.HasReposted(currentUserID, post.ID)
+		}
 	}
 }

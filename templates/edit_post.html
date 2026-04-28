@@ -5,14 +5,10 @@
         <h1 class="page-title">Modifier le post</h1>
 
         {{if .Errors}}
-        <div class="alert alert-error">
-            {{range .Errors}}
-            <p>{{.}}</p>
-            {{end}}
-        </div>
+        <div class="alert alert-error">{{range .Errors}}<p>{{.}}</p>{{end}}</div>
         {{end}}
 
-        <form action="/post/edit/{{.Post.ID}}" method="POST" enctype="multipart/form-data" class="form">
+        <form action="/post/edit/{{.Post.ID}}" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="title" class="form-label">Titre</label>
                 <input type="text" id="title" name="title" class="form-input" value="{{.Post.Title}}" required maxlength="200">
@@ -37,13 +33,13 @@
             {{if .Post.ImagePath}}
             <div class="form-group">
                 <label class="form-label">Image actuelle</label>
-                <img src="/static/uploads/{{.Post.ImagePath}}" alt="Image actuelle" class="preview-image">
+                <img src="/static/uploads/{{.Post.ImagePath}}" alt="" class="preview-image">
             </div>
             {{end}}
             <div class="form-group">
                 <label for="image" class="form-label">Nouvelle image (optionnel)</label>
                 <input type="file" id="image" name="image" class="form-input" accept="image/jpeg,image/png,image/gif">
-                <small class="form-hint">JPEG, PNG ou GIF - Max 20 Mo</small>
+                <small class="form-hint">JPEG, PNG ou GIF — Max 20 Mo</small>
             </div>
             <div class="form-actions">
                 <a href="/post/{{.Post.ID}}" class="btn btn-secondary">Annuler</a>

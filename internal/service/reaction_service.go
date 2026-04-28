@@ -26,3 +26,19 @@ func (s *ReactionService) ReactToComment(userID, commentID int, reactionType str
 	}
 	return s.reactionRepo.SetCommentReaction(userID, commentID, reactionType)
 }
+
+func (s *ReactionService) CountPostReactions(postID int) (int, int, error) {
+	return s.reactionRepo.CountPostReactions(postID)
+}
+
+func (s *ReactionService) GetPostReaction(userID, postID int) (string, error) {
+	return s.reactionRepo.GetPostReaction(userID, postID)
+}
+
+func (s *ReactionService) CountCommentReactions(commentID int) (int, int, error) {
+	return s.reactionRepo.CountCommentReactions(commentID)
+}
+
+func (s *ReactionService) GetCommentReaction(userID, commentID int) (string, error) {
+	return s.reactionRepo.GetCommentReaction(userID, commentID)
+}

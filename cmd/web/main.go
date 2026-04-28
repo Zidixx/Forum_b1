@@ -7,15 +7,16 @@ import (
 	"forum/internal/middleware"
 	"forum/internal/repository"
 	"forum/internal/service"
-	"html/template"
+	"forum/internal/utils"
+	htmltemplate "html/template"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func main() {
-	// Resolve paths relative to the binary or working directory
 	baseDir := "."
 	if len(os.Args) > 1 {
 		baseDir = os.Args[1]
@@ -49,16 +50,26 @@ func main() {
 	commentRepo := repository.NewCommentRepository(database)
 	catRepo := repository.NewCategoryRepository(database)
 	reactionRepo := repository.NewReactionRepository(database)
+	repostRepo := repository.NewRepostRepository(database)
 
 	// Services
 	authService := service.NewAuthService(userRepo, sessionRepo)
-	postService := service.NewPostService(postRepo, catRepo, reactionRepo)
+	postService := service.NewPostService(postRepo, catRepo, reactionRepo, repostRepo)
 	commentService := service.NewCommentService(commentRepo, reactionRepo)
 	reactionService := service.NewReactionService(reactionRepo)
 	uploadService := service.NewUploadService(uploadDir)
 
+	// Template functions
+	funcMap := htmltemplate.FuncMap{
+		"timeAgo": utils.TimeAgo,
+		"upper":   strings.ToUpper,
+		"add": func(a, b int) int {
+			return a + b
+		},
+	}
+
 	// Templates
-	tmpl, err := template.ParseGlob(filepath.Join(templatesDir, "*.html"))
+	tmpl, err := handler.NewTemplateMap(templatesDir, funcMap)
 	if err != nil {
 		log.Fatalf("templates: %v", err)
 	}
@@ -69,8 +80,9 @@ func main() {
 	homeHandler := handler.NewHomeHandler(postService, catRepo, tmpl, errHandler)
 	postHandler := handler.NewPostHandler(postService, uploadService, catRepo, tmpl, errHandler)
 	commentHandler := handler.NewCommentHandler(commentService, tmpl, errHandler)
-	reactionHandler := handler.NewReactionHandler(reactionService, errHandler)
+	reactionHandler := handler.NewReactionHandler(reactionService, repostRepo, errHandler)
 	profileHandler := handler.NewProfileHandler(postService, tmpl, errHandler)
+	searchHandler := handler.NewSearchHandler(postService, tmpl, errHandler)
 
 	// Middleware
 	userCtx := middleware.UserContext(authService)
@@ -87,7 +99,6 @@ func main() {
 	// Public routes (with user context)
 	mux.Handle("/", userCtx(http.HandlerFunc(homeHandler.Home)))
 	mux.Handle("/post/", userCtx(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Route dispatch for /post/*
 		path := r.URL.Path
 		switch {
 		case path == "/post/create" && r.Method == http.MethodGet:
@@ -125,6 +136,13 @@ func main() {
 			errHandler.NotFound(w, r)
 		}
 	}))))
+
+	// Repost route
+	mux.Handle("/repost/", userCtx(requireAuth(http.HandlerFunc(reactionHandler.Repost))))
+
+	// Search routes
+	mux.Handle("/search", userCtx(http.HandlerFunc(searchHandler.Search)))
+	mux.Handle("/api/search", userCtx(http.HandlerFunc(searchHandler.APISearch)))
 
 	// Auth routes
 	mux.Handle("/register", userCtx(guestOnly(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

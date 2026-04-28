@@ -1,32 +1,35 @@
 {{template "base" .}}
 {{define "content"}}
-<section class="posts-section">
+<div class="profile-page">
     <h1 class="page-title">{{.Title}}</h1>
+    <div class="feed">
     {{if .Posts}}
         {{range .Posts}}
-        <article class="card post-card">
-            <div class="post-card-header">
-                <h2 class="post-card-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h2>
-                <div class="post-meta">
-                    <span class="post-date">{{.Post.CreatedAt.Format "02/01/2006 15:04"}}</span>
-                </div>
-            </div>
-            <p class="post-excerpt">{{.Excerpt}}</p>
-            <div class="post-card-footer">
-                <div class="post-categories">
-                    {{range .Post.Categories}}
-                    <span class="badge">{{.Name}}</span>
+        <article class="post-card" onclick="window.location='/post/{{.Post.ID}}'">
+            <div class="post-card-top">
+                <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
+                <div class="post-card-body">
+                    <div class="post-card-header">
+                        <span class="post-author-name">{{.Post.Author}}</span>
+                        <span class="post-dot">&middot;</span>
+                        <span class="post-timestamp">{{timeAgo .Post.CreatedAt}}</span>
+                    </div>
+                    <h3 class="post-card-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
+                    <p class="post-card-text">{{.Excerpt}}</p>
+                    {{if .Post.Categories}}
+                    <div class="post-card-tags">{{range .Post.Categories}}<span class="badge">{{.Name}}</span>{{end}}</div>
                     {{end}}
-                </div>
-                <div class="post-stats">
-                    <span class="stat like">&#9650; {{.Post.Likes}}</span>
-                    <span class="stat dislike">&#9660; {{.Post.Dislikes}}</span>
+                    <div class="action-bar">
+                        <span class="action-btn comment-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> {{.Post.CommentCount}}</span>
+                        <span class="action-btn like-action{{if eq .Post.UserVote "like"}} active{{end}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> {{.Post.Likes}}</span>
+                    </div>
                 </div>
             </div>
         </article>
         {{end}}
     {{else}}
-        <p class="empty-state">Vous n'avez pas encore créé de post.</p>
+        <p class="empty-state">Aucun post ici.</p>
     {{end}}
-</section>
+    </div>
+</div>
 {{end}}

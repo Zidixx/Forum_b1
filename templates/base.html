@@ -1,40 +1,67 @@
 {{define "base"}}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forum{{if .Title}} - {{.Title}}{{end}}</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+    </script>
 </head>
 <body>
     <header class="header">
         <div class="container header-inner">
-            <a href="/" class="logo">Forum</a>
-            <nav class="nav">
+            <a href="/" class="logo">forum</a>
+
+            <div class="nav-search">
+                <span class="nav-search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+                <input type="text" class="nav-search-input" id="searchInput" placeholder="Rechercher" autocomplete="off">
+                <div class="search-dropdown" id="searchDropdown"></div>
+            </div>
+
+            <button class="hamburger" id="hamburger" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+
+            <nav class="nav" id="nav">
+                <button class="theme-toggle" id="themeToggle" aria-label="Changer de theme">
+                    <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </button>
                 {{if .User}}
-                    <span class="nav-user">{{.User.Username}}</span>
-                    <a href="/my-posts" class="nav-link">Mes posts</a>
-                    <a href="/liked-posts" class="nav-link">Posts aimés</a>
-                    <a href="/post/create" class="nav-link btn-primary">Nouveau post</a>
-                    <form action="/logout" method="POST" class="inline-form">
-                        <button type="submit" class="nav-link btn-secondary">Déconnexion</button>
-                    </form>
+                    <a href="/post/create" class="nav-btn-primary">Poster</a>
+                    <div class="nav-user" id="navUser">
+                        <span class="nav-user-avatar">{{slice .User.Username 0 1}}</span>
+                        <span>{{.User.Username}}</span>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="/my-posts" class="dropdown-item">Mes posts</a>
+                            <a href="/liked-posts" class="dropdown-item">Posts aimes</a>
+                            <div class="dropdown-divider"></div>
+                            <form action="/logout" method="POST" class="inline-form">
+                                <button type="submit" class="dropdown-item">Deconnexion</button>
+                            </form>
+                        </div>
+                    </div>
                 {{else}}
-                    <a href="/login" class="nav-link">Connexion</a>
-                    <a href="/register" class="nav-link btn-primary">Inscription</a>
+                    <a href="/login" class="nav-btn-outline">Connexion</a>
+                    <a href="/register" class="nav-btn-primary">S'inscrire</a>
                 {{end}}
             </nav>
         </div>
     </header>
+
     <main class="container main-content">
         {{template "content" .}}
     </main>
+
     <footer class="footer">
-        <div class="container">
-            <p>Forum &copy; 2026</p>
-        </div>
+        <div class="container"><p>forum &copy; 2026</p></div>
     </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="/static/js/app.js"></script>
 </body>
 </html>
 {{end}}

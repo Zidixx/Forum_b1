@@ -2,16 +2,15 @@ package handler
 
 import (
 	"forum/internal/middleware"
-	"html/template"
 	"log"
 	"net/http"
 )
 
 type ErrorHandler struct {
-	tmpl *template.Template
+	tmpl Renderer
 }
 
-func NewErrorHandler(tmpl *template.Template) *ErrorHandler {
+func NewErrorHandler(tmpl Renderer) *ErrorHandler {
 	return &ErrorHandler{tmpl: tmpl}
 }
 

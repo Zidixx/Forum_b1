@@ -2,119 +2,129 @@
 {{define "content"}}
 <article class="post-detail">
     <div class="card">
-        <header class="post-detail-header">
-            <h1 class="page-title">{{.Post.Title}}</h1>
-            <div class="post-meta">
-                <span class="post-author">par {{.Post.Author}}</span>
-                <span class="post-date">{{.Post.CreatedAt.Format "02/01/2006 15:04"}}</span>
-                {{if .Post.UpdatedAt}}
-                    {{if ne (.Post.CreatedAt.Format "2006-01-02") (.Post.UpdatedAt.Format "2006-01-02")}}
-                    <span class="post-edited">(modifié le {{.Post.UpdatedAt.Format "02/01/2006 15:04"}})</span>
-                    {{end}}
-                {{end}}
+        <div class="post-detail-meta">
+            <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
+            <div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span class="post-author-name">{{.Post.Author}}</span>
+                    <span class="post-author-handle">@{{.Post.Author}}</span>
+                </div>
+                <div class="post-timestamp">{{timeAgo .Post.CreatedAt}}{{if .Post.UpdatedAt}}{{if ne (.Post.CreatedAt.Format "2006-01-02") (.Post.UpdatedAt.Format "2006-01-02")}} &middot; modifié{{end}}{{end}}</div>
             </div>
-            <div class="post-categories">
-                {{range .Post.Categories}}
-                <span class="badge">{{.Name}}</span>
-                {{end}}
+            {{if .User}}{{if eq .User.ID .Post.UserID}}
+            <div class="post-owner-actions" style="margin-left:auto">
+                <a href="/post/edit/{{.Post.ID}}" class="btn btn-secondary btn-small">Modifier</a>
+                <form action="/post/delete/{{.Post.ID}}" method="POST" class="inline-form" onsubmit="return confirm('Supprimer ce post ?')">
+                    <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
+                </form>
             </div>
-        </header>
+            {{end}}{{end}}
+        </div>
+
+        <h1 class="page-title" style="margin-bottom:12px">{{.Post.Title}}</h1>
+
+        <div class="post-card-tags">
+            {{range .Post.Categories}}
+            <span class="badge">{{.Name}}</span>
+            {{end}}
+        </div>
 
         {{if .Post.ImagePath}}
         <div class="post-image">
-            <img src="/static/uploads/{{.Post.ImagePath}}" alt="Image du post">
+            <img src="/static/uploads/{{.Post.ImagePath}}" alt="">
         </div>
         {{end}}
 
-        <div class="post-content">
-            {{.Post.Content}}
+        <div class="post-content">{{.Post.Content}}</div>
+
+        <div class="post-detail-stats">
+            <span><strong>{{.Post.CommentCount}}</strong> commentaires</span>
+            <span><strong>{{.Post.Likes}}</strong> likes</span>
+            <span><strong>{{.Post.Reposts}}</strong> reposts</span>
         </div>
 
         <div class="post-actions-bar">
-            <div class="reaction-buttons">
-                {{if .User}}
-                <form action="/post/react/{{.Post.ID}}" method="POST" class="inline-form">
-                    <input type="hidden" name="type" value="like">
-                    <button type="submit" class="reaction-btn{{if eq .Post.UserVote "like"}} active{{end}}">&#9650; {{.Post.Likes}}</button>
-                </form>
-                <form action="/post/react/{{.Post.ID}}" method="POST" class="inline-form">
-                    <input type="hidden" name="type" value="dislike">
-                    <button type="submit" class="reaction-btn{{if eq .Post.UserVote "dislike"}} active{{end}}">&#9660; {{.Post.Dislikes}}</button>
-                </form>
-                {{else}}
-                <span class="stat like">&#9650; {{.Post.Likes}}</span>
-                <span class="stat dislike">&#9660; {{.Post.Dislikes}}</span>
-                {{end}}
-            </div>
-
-            {{if .User}}
-                {{if eq .User.ID .Post.UserID}}
-                <div class="post-owner-actions">
-                    <a href="/post/edit/{{.Post.ID}}" class="btn btn-secondary btn-small">Modifier</a>
-                    <form action="/post/delete/{{.Post.ID}}" method="POST" class="inline-form" onsubmit="return confirm('Supprimer ce post ?')">
-                        <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
-                    </form>
+            <a href="#comments" class="action-btn comment-action">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>{{.Post.CommentCount}}</span>
+            </a>
+            <button class="action-btn repost-action{{if .Post.UserReposted}} active{{end}}" data-post-id="{{.Post.ID}}" onclick="handleRepost(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <span class="repost-count">{{.Post.Reposts}}</span>
+            </button>
+            <button class="action-btn like-action{{if eq .Post.UserVote "like"}} active{{end}}" data-post-id="{{.Post.ID}}" onclick="handleLike(this,'post')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span class="like-count">{{.Post.Likes}}</span>
+            </button>
+            <div style="position:relative">
+                <button class="action-btn share-action" onclick="toggleShare(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </button>
+                <div class="share-dropdown" data-post-id="{{.Post.ID}}" data-post-title="{{.Post.Title}}">
+                    <button class="share-option" onclick="copyLink('/post/'+this.parentElement.dataset.postId)">&#128203; Copier le lien</button>
+                    <button class="share-option" onclick="shareTwitter(this.parentElement.dataset.postTitle,'/post/'+this.parentElement.dataset.postId)">&#128038; Twitter/X</button>
+                    <button class="share-option" onclick="shareWhatsApp(this.parentElement.dataset.postTitle,'/post/'+this.parentElement.dataset.postId)">&#128172; WhatsApp</button>
                 </div>
-                {{end}}
-            {{end}}
+            </div>
         </div>
     </div>
 
-    <section class="comments-section">
+    <section class="comments-section" id="comments">
+        <hr class="comments-divider">
         <h2 class="section-title">Commentaires ({{len .Post.Comments}})</h2>
 
         {{if .User}}
-        <div class="card comment-form-card">
-            <form action="/comment/create" method="POST" class="form">
-                <input type="hidden" name="post_id" value="{{.Post.ID}}">
-                <div class="form-group">
-                    <textarea name="content" class="form-textarea" rows="3" placeholder="Écrire un commentaire..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Commenter</button>
-            </form>
+        <div class="comment-form-wrapper">
+            <div class="comment-form-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="comment-form-body">
+                <form action="/comment/create" method="POST" id="commentForm">
+                    <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                    <textarea name="content" placeholder="Ajoute ton commentaire..." required id="commentText"></textarea>
+                    <div class="comment-form-actions">
+                        <button type="submit" class="btn btn-primary btn-small" id="commentSubmit" disabled>Commenter</button>
+                    </div>
+                </form>
+            </div>
         </div>
         {{end}}
 
         {{range .Post.Comments}}
-        <div class="card comment-card" id="comment-{{.ID}}">
-            <div class="comment-header">
-                <span class="comment-author">{{.Author}}</span>
-                <span class="comment-date">{{.CreatedAt.Format "02/01/2006 15:04"}}</span>
-            </div>
-            <div class="comment-content">{{.Content}}</div>
-            <div class="comment-actions">
-                <div class="reaction-buttons">
-                    {{if $.User}}
-                    <form action="/comment/react/{{.ID}}" method="POST" class="inline-form">
-                        <input type="hidden" name="type" value="like">
-                        <input type="hidden" name="post_id" value="{{$.Post.ID}}">
-                        <button type="submit" class="reaction-btn small{{if eq .UserVote "like"}} active{{end}}">&#9650; {{.Likes}}</button>
-                    </form>
-                    <form action="/comment/react/{{.ID}}" method="POST" class="inline-form">
-                        <input type="hidden" name="type" value="dislike">
-                        <input type="hidden" name="post_id" value="{{$.Post.ID}}">
-                        <button type="submit" class="reaction-btn small{{if eq .UserVote "dislike"}} active{{end}}">&#9660; {{.Dislikes}}</button>
-                    </form>
-                    {{else}}
-                    <span class="stat like small">&#9650; {{.Likes}}</span>
-                    <span class="stat dislike small">&#9660; {{.Dislikes}}</span>
-                    {{end}}
+        <div class="comment-card" id="comment-{{.ID}}">
+            <div class="comment-avatar">{{slice .Author 0 1}}</div>
+            <div class="comment-body">
+                <div class="comment-header">
+                    <span class="comment-author">{{.Author}}</span>
+                    <span class="comment-date">{{timeAgo .CreatedAt}}</span>
                 </div>
+                <div class="comment-content">{{.Content}}</div>
+                <div class="comment-actions">
+                    {{if $.User}}
+                    <button class="comment-action-btn like-action{{if eq .UserVote "like"}} active{{end}}" data-comment-id="{{.ID}}" data-post-id="{{$.Post.ID}}" onclick="handleCommentReaction(this,'like')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <span class="like-count">{{.Likes}}</span>
+                    </button>
+                    <button class="comment-action-btn dislike-action{{if eq .UserVote "dislike"}} active{{end}}" data-comment-id="{{.ID}}" data-post-id="{{$.Post.ID}}" onclick="handleCommentReaction(this,'dislike')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+                        <span class="dislike-count">{{.Dislikes}}</span>
+                    </button>
+                    {{else}}
+                    <span class="comment-action-btn like-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> {{.Likes}}</span>
+                    <span class="comment-action-btn dislike-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg> {{.Dislikes}}</span>
+                    {{end}}
 
-                {{if $.User}}
-                    {{if eq $.User.ID .UserID}}
-                    <div class="comment-owner-actions">
+                    {{if $.User}}{{if eq $.User.ID .UserID}}
+                    <div class="comment-owner-actions" style="margin-left:auto">
                         <a href="/comment/edit/{{.ID}}" class="btn btn-secondary btn-small">Modifier</a>
-                        <form action="/comment/delete/{{.ID}}" method="POST" class="inline-form" onsubmit="return confirm('Supprimer ce commentaire ?')">
+                        <form action="/comment/delete/{{.ID}}" method="POST" class="inline-form" onsubmit="return confirm('Supprimer ?')">
                             <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
                         </form>
                     </div>
-                    {{end}}
-                {{end}}
+                    {{end}}{{end}}
+                </div>
             </div>
         </div>
         {{else}}
-        <p class="empty-state">Aucun commentaire pour le moment.</p>
+        <p class="empty-state">Aucun commentaire. Sois le premier !</p>
         {{end}}
     </section>
 </article>

@@ -14,6 +14,9 @@ type Post struct {
 	Categories []Category
 	Likes      int
 	Dislikes   int
-	UserVote   string // "like", "dislike", or ""
-	Comments   []Comment
+	UserVote     string // "like", "dislike", or ""
+	Comments     []Comment
+	Reposts      int
+	UserReposted bool
+	CommentCount int
 }

@@ -76,6 +76,16 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
     FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS reposts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    post_id INTEGER NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, post_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
@@ -89,3 +99,5 @@ CREATE INDEX IF NOT EXISTS idx_post_reactions_post_id ON post_reactions(post_id)
 CREATE INDEX IF NOT EXISTS idx_post_reactions_user_id ON post_reactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_comment_reactions_comment_id ON comment_reactions(comment_id);
 CREATE INDEX IF NOT EXISTS idx_comment_reactions_user_id ON comment_reactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_reposts_post_id ON reposts(post_id);
+CREATE INDEX IF NOT EXISTS idx_reposts_user_id ON reposts(user_id);

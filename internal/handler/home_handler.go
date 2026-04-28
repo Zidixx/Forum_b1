@@ -4,7 +4,6 @@ import (
 	"forum/internal/middleware"
 	"forum/internal/repository"
 	"forum/internal/service"
-	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -12,11 +11,11 @@ import (
 type HomeHandler struct {
 	postService *service.PostService
 	catRepo     *repository.CategoryRepository
-	tmpl        *template.Template
+	tmpl        Renderer
 	errHandler  *ErrorHandler
 }
 
-func NewHomeHandler(postService *service.PostService, catRepo *repository.CategoryRepository, tmpl *template.Template, errHandler *ErrorHandler) *HomeHandler {
+func NewHomeHandler(postService *service.PostService, catRepo *repository.CategoryRepository, tmpl Renderer, errHandler *ErrorHandler) *HomeHandler {
 	return &HomeHandler{postService: postService, catRepo: catRepo, tmpl: tmpl, errHandler: errHandler}
 }
 
@@ -37,11 +36,13 @@ func (h *HomeHandler) Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	categoryFilter := r.URL.Query().Get("category")
+	sort := r.URL.Query().Get("sort")
+	if sort == "" {
+		sort = "new"
+	}
 
-	var posts []interface{}
-	var err error
 	var rawPosts []interface{}
-	_ = rawPosts
+	var err error
 
 	if categoryFilter != "" {
 		catID, convErr := strconv.Atoi(categoryFilter)
@@ -55,19 +56,19 @@ func (h *HomeHandler) Home(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for _, post := range p {
-			posts = append(posts, map[string]interface{}{
+			rawPosts = append(rawPosts, map[string]interface{}{
 				"Post":    post,
 				"Excerpt": h.postService.Excerpt(post.Content),
 			})
 		}
 	} else {
-		p, fetchErr := h.postService.GetAll(userID)
+		p, fetchErr := h.postService.GetAllSorted(sort, userID)
 		if fetchErr != nil {
 			h.errHandler.InternalError(w, r, fetchErr)
 			return
 		}
 		for _, post := range p {
-			posts = append(posts, map[string]interface{}{
+			rawPosts = append(rawPosts, map[string]interface{}{
 				"Post":    post,
 				"Excerpt": h.postService.Excerpt(post.Content),
 			})
@@ -80,11 +81,15 @@ func (h *HomeHandler) Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	trending, _ := h.postService.GetTrending(5, userID)
+
 	data := map[string]interface{}{
 		"User":           user,
-		"Posts":          posts,
+		"Posts":          rawPosts,
 		"Categories":     categories,
 		"CategoryFilter": categoryFilter,
+		"Sort":           sort,
+		"Trending":       trending,
 	}
 
 	h.tmpl.ExecuteTemplate(w, "home.html", data)

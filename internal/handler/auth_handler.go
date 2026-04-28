@@ -4,18 +4,17 @@ import (
 	"forum/internal/middleware"
 	"forum/internal/service"
 	"forum/internal/utils"
-	"html/template"
 	"net/http"
 	"time"
 )
 
 type AuthHandler struct {
 	authService *service.AuthService
-	tmpl        *template.Template
+	tmpl        Renderer
 	errHandler  *ErrorHandler
 }
 
-func NewAuthHandler(authService *service.AuthService, tmpl *template.Template, errHandler *ErrorHandler) *AuthHandler {
+func NewAuthHandler(authService *service.AuthService, tmpl Renderer, errHandler *ErrorHandler) *AuthHandler {
 	return &AuthHandler{authService: authService, tmpl: tmpl, errHandler: errHandler}
 }
 

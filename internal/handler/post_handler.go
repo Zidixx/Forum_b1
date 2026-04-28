@@ -7,7 +7,6 @@ import (
 	"forum/internal/repository"
 	"forum/internal/service"
 	"forum/internal/utils"
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,11 +16,11 @@ type PostHandler struct {
 	postService   *service.PostService
 	uploadService *service.UploadService
 	catRepo       *repository.CategoryRepository
-	tmpl          *template.Template
+	tmpl          Renderer
 	errHandler    *ErrorHandler
 }
 
-func NewPostHandler(postService *service.PostService, uploadService *service.UploadService, catRepo *repository.CategoryRepository, tmpl *template.Template, errHandler *ErrorHandler) *PostHandler {
+func NewPostHandler(postService *service.PostService, uploadService *service.UploadService, catRepo *repository.CategoryRepository, tmpl Renderer, errHandler *ErrorHandler) *PostHandler {
 	return &PostHandler{postService: postService, uploadService: uploadService, catRepo: catRepo, tmpl: tmpl, errHandler: errHandler}
 }
 

@@ -3,17 +3,16 @@ package handler
 import (
 	"forum/internal/middleware"
 	"forum/internal/service"
-	"html/template"
 	"net/http"
 )
 
 type ProfileHandler struct {
 	postService *service.PostService
-	tmpl        *template.Template
+	tmpl        Renderer
 	errHandler  *ErrorHandler
 }
 
-func NewProfileHandler(postService *service.PostService, tmpl *template.Template, errHandler *ErrorHandler) *ProfileHandler {
+func NewProfileHandler(postService *service.PostService, tmpl Renderer, errHandler *ErrorHandler) *ProfileHandler {
 	return &ProfileHandler{postService: postService, tmpl: tmpl, errHandler: errHandler}
 }
 
