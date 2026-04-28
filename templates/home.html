@@ -37,13 +37,6 @@
     </aside>
 
     <section class="posts-section">
-        <div class="sort-bar">
-            <a href="/?sort=hot{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-btn{{if eq .Sort "hot"}} active{{end}}">Hot</a>
-            <a href="/?sort=new{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-btn{{if eq .Sort "new"}} active{{end}}">New</a>
-            <a href="/?sort=top{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-btn{{if eq .Sort "top"}} active{{end}}">Top</a>
-            <a href="/?sort=discussed{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-btn{{if eq .Sort "discussed"}} active{{end}}">Discutes</a>
-        </div>
-
         <div class="feed">
         {{if .Posts}}
             {{range .Posts}}
