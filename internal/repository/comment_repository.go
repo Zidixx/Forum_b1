@@ -15,8 +15,8 @@ func NewCommentRepository(db *sql.DB) *CommentRepository {
 
 func (r *CommentRepository) Create(comment *models.Comment) error {
 	result, err := r.db.Exec(
-		"INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)",
-		comment.PostID, comment.UserID, comment.Content,
+		"INSERT INTO comments (post_id, user_id, parent_id, content) VALUES (?, ?, ?, ?)",
+		comment.PostID, comment.UserID, comment.ParentID, comment.Content,
 	)
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (r *CommentRepository) Create(comment *models.Comment) error {
 
 func (r *CommentRepository) FindByPostID(postID int) ([]models.Comment, error) {
 	rows, err := r.db.Query(`
-		SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, c.updated_at, u.username
+		SELECT c.id, c.post_id, c.user_id, c.parent_id, c.content, c.created_at, c.updated_at, u.username
 		FROM comments c
 		JOIN users u ON c.user_id = u.id
 		WHERE c.post_id = ?
@@ -39,25 +39,44 @@ func (r *CommentRepository) FindByPostID(postID int) ([]models.Comment, error) {
 	}
 	defer rows.Close()
 
-	var comments []models.Comment
+	var all []models.Comment
 	for rows.Next() {
 		var c models.Comment
-		if err := rows.Scan(&c.ID, &c.PostID, &c.UserID, &c.Content, &c.CreatedAt, &c.UpdatedAt, &c.Author); err != nil {
+		if err := rows.Scan(&c.ID, &c.PostID, &c.UserID, &c.ParentID, &c.Content, &c.CreatedAt, &c.UpdatedAt, &c.Author); err != nil {
 			return nil, err
 		}
-		comments = append(comments, c)
+		all = append(all, c)
 	}
-	return comments, nil
+
+	// Build nested structure: top-level comments with their replies
+	var topLevel []models.Comment
+	replyMap := make(map[int][]models.Comment)
+
+	for i := range all {
+		if all[i].ParentID == 0 {
+			topLevel = append(topLevel, all[i])
+		} else {
+			replyMap[all[i].ParentID] = append(replyMap[all[i].ParentID], all[i])
+		}
+	}
+
+	for i := range topLevel {
+		if replies, ok := replyMap[topLevel[i].ID]; ok {
+			topLevel[i].Replies = replies
+		}
+	}
+
+	return topLevel, nil
 }
 
 func (r *CommentRepository) FindByID(id int) (*models.Comment, error) {
 	comment := &models.Comment{}
 	err := r.db.QueryRow(`
-		SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, c.updated_at, u.username
+		SELECT c.id, c.post_id, c.user_id, c.parent_id, c.content, c.created_at, c.updated_at, u.username
 		FROM comments c
 		JOIN users u ON c.user_id = u.id
 		WHERE c.id = ?
-	`, id).Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.CreatedAt, &comment.UpdatedAt, &comment.Author)
+	`, id).Scan(&comment.ID, &comment.PostID, &comment.UserID, &comment.ParentID, &comment.Content, &comment.CreatedAt, &comment.UpdatedAt, &comment.Author)
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +92,14 @@ func (r *CommentRepository) Update(comment *models.Comment) error {
 }
 
 func (r *CommentRepository) Delete(id int) error {
+	// Delete replies first, then the comment
+	r.db.Exec("DELETE FROM comments WHERE parent_id = ?", id)
 	_, err := r.db.Exec("DELETE FROM comments WHERE id = ?", id)
 	return err
+}
+
+func (r *CommentRepository) CountAll() (int, error) {
+	var count int
+	err := r.db.QueryRow("SELECT COUNT(*) FROM comments").Scan(&count)
+	return count, err
 }

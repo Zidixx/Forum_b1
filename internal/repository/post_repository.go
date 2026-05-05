@@ -22,8 +22,8 @@ func (r *PostRepository) Create(post *models.Post, categoryIDs []int) error {
 	defer tx.Rollback()
 
 	result, err := tx.Exec(
-		"INSERT INTO posts (user_id, title, content, image_path) VALUES (?, ?, ?, ?)",
-		post.UserID, post.Title, post.Content, post.ImagePath,
+		"INSERT INTO posts (user_id, title, content, image_path, league) VALUES (?, ?, ?, ?, ?)",
+		post.UserID, post.Title, post.Content, post.ImagePath, post.League,
 	)
 	if err != nil {
 		return err
@@ -45,11 +45,11 @@ func (r *PostRepository) FindByID(id int) (*models.Post, error) {
 	post := &models.Post{}
 	var imagePath sql.NullString
 	err := r.db.QueryRow(`
-		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.id = ?
-	`, id).Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &imagePath, &post.CreatedAt, &post.UpdatedAt, &post.Author)
+	`, id).Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &imagePath, &post.League, &post.CreatedAt, &post.UpdatedAt, &post.Author)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (r *PostRepository) FindByID(id int) (*models.Post, error) {
 
 func (r *PostRepository) FindAll() ([]models.Post, error) {
 	return r.queryPosts(`
-		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		ORDER BY p.created_at DESC
@@ -70,7 +70,7 @@ func (r *PostRepository) FindAll() ([]models.Post, error) {
 
 func (r *PostRepository) FindByCategory(categoryID int) ([]models.Post, error) {
 	return r.queryPosts(`
-		SELECT DISTINCT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		SELECT DISTINCT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		JOIN post_categories pc ON p.id = pc.post_id
@@ -79,9 +79,19 @@ func (r *PostRepository) FindByCategory(categoryID int) ([]models.Post, error) {
 	`, categoryID)
 }
 
+func (r *PostRepository) FindByLeague(league string) ([]models.Post, error) {
+	return r.queryPosts(`
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		WHERE p.league = ?
+		ORDER BY p.created_at DESC
+	`, league)
+}
+
 func (r *PostRepository) FindByUserID(userID int) ([]models.Post, error) {
 	return r.queryPosts(`
-		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.user_id = ?
@@ -91,7 +101,7 @@ func (r *PostRepository) FindByUserID(userID int) ([]models.Post, error) {
 
 func (r *PostRepository) FindLikedByUserID(userID int) ([]models.Post, error) {
 	return r.queryPosts(`
-		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		JOIN post_reactions pr ON p.id = pr.post_id
@@ -108,8 +118,8 @@ func (r *PostRepository) Update(post *models.Post, categoryIDs []int) error {
 	defer tx.Rollback()
 
 	_, err = tx.Exec(
-		"UPDATE posts SET title = ?, content = ?, image_path = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-		post.Title, post.Content, post.ImagePath, post.ID,
+		"UPDATE posts SET title = ?, content = ?, image_path = ?, league = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+		post.Title, post.Content, post.ImagePath, post.League, post.ID,
 	)
 	if err != nil {
 		return err
@@ -162,7 +172,7 @@ func (r *PostRepository) queryPosts(query string, args ...interface{}) ([]models
 	for rows.Next() {
 		var p models.Post
 		var imagePath sql.NullString
-		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Content, &imagePath, &p.CreatedAt, &p.UpdatedAt, &p.Author); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Content, &imagePath, &p.League, &p.CreatedAt, &p.UpdatedAt, &p.Author); err != nil {
 			return nil, err
 		}
 		if imagePath.Valid {
@@ -176,7 +186,7 @@ func (r *PostRepository) queryPosts(query string, args ...interface{}) ([]models
 func (r *PostRepository) Search(query string) ([]models.Post, error) {
 	q := "%" + query + "%"
 	return r.queryPosts(`
-		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.title LIKE ? OR p.content LIKE ?
@@ -187,7 +197,7 @@ func (r *PostRepository) Search(query string) ([]models.Post, error) {
 
 func (r *PostRepository) FindTrending(limit int) ([]models.Post, error) {
 	return r.queryPosts(`
-		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+		SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		LEFT JOIN post_reactions pr ON p.id = pr.post_id AND pr.type = 'like'
@@ -201,7 +211,7 @@ func (r *PostRepository) FindAllSorted(sort string) ([]models.Post, error) {
 	switch sort {
 	case "top":
 		return r.queryPosts(`
-			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 			FROM posts p
 			JOIN users u ON p.user_id = u.id
 			LEFT JOIN post_reactions pr ON p.id = pr.post_id AND pr.type = 'like'
@@ -210,7 +220,7 @@ func (r *PostRepository) FindAllSorted(sort string) ([]models.Post, error) {
 		`)
 	case "hot":
 		return r.queryPosts(`
-			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 			FROM posts p
 			JOIN users u ON p.user_id = u.id
 			LEFT JOIN post_reactions pr ON p.id = pr.post_id AND pr.type = 'like'
@@ -220,7 +230,7 @@ func (r *PostRepository) FindAllSorted(sort string) ([]models.Post, error) {
 		`)
 	case "discussed":
 		return r.queryPosts(`
-			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.created_at, p.updated_at, u.username
+			SELECT p.id, p.user_id, p.title, p.content, p.image_path, p.league, p.created_at, p.updated_at, u.username
 			FROM posts p
 			JOIN users u ON p.user_id = u.id
 			LEFT JOIN comments c ON p.id = c.post_id
@@ -235,6 +245,12 @@ func (r *PostRepository) FindAllSorted(sort string) ([]models.Post, error) {
 func (r *PostRepository) CountComments(postID int) (int, error) {
 	var count int
 	err := r.db.QueryRow("SELECT COUNT(*) FROM comments WHERE post_id = ?", postID).Scan(&count)
+	return count, err
+}
+
+func (r *PostRepository) CountAll() (int, error) {
+	var count int
+	err := r.db.QueryRow("SELECT COUNT(*) FROM posts").Scan(&count)
 	return count, err
 }
 

@@ -1,34 +1,44 @@
 {{template "base" .}}
 {{define "content"}}
 <div class="profile-page">
-    <h1 class="page-title">{{.Title}}</h1>
+    <h1 class="page-heading">Posts soutenus</h1>
     <div class="feed">
     {{if .Posts}}
         {{range .Posts}}
-        <article class="post-card" onclick="window.location='/post/{{.Post.ID}}'">
-            <div class="post-card-top">
-                <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
-                <div class="post-card-body">
-                    <div class="post-card-header">
-                        <span class="post-author-name">{{.Post.Author}}</span>
-                        <span class="post-dot">&middot;</span>
-                        <span class="post-timestamp">{{timeAgo .Post.CreatedAt}}</span>
+        <article class="post-card" data-tilt onclick="window.location='/post/{{.Post.ID}}'">
+            <div class="post-card-shine"></div>
+            <div class="post-card-inner">
+                {{if .Post.League}}
+                <div class="post-league-badge" style="background:{{leagueColor .Post.League}}">
+                    {{leagueFlag .Post.League}} {{leagueLabel .Post.League}}
+                </div>
+                {{end}}
+                <div class="post-meta-row">
+                    <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
+                    <div class="post-meta-info">
+                        <span class="post-author">{{.Post.Author}}</span>
+                        <span class="post-time">{{timeAgo .Post.CreatedAt}}</span>
                     </div>
-                    <h3 class="post-card-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
-                    <p class="post-card-text">{{.Excerpt}}</p>
-                    {{if .Post.Categories}}
-                    <div class="post-card-tags">{{range .Post.Categories}}<span class="badge">{{.Name}}</span>{{end}}</div>
-                    {{end}}
-                    <div class="action-bar">
-                        <span class="action-btn comment-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> {{.Post.CommentCount}}</span>
-                        <span class="action-btn like-action active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> {{.Post.Likes}}</span>
-                    </div>
+                </div>
+                <h3 class="post-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
+                <p class="post-excerpt">{{.Excerpt}}</p>
+                {{if .Post.Categories}}
+                <div class="post-categories">{{range .Post.Categories}}<span class="cat-badge">{{.Name}}</span>{{end}}</div>
+                {{end}}
+                <div class="post-actions">
+                    <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> {{.Post.CommentCount}}</span>
+                    <span class="action-btn like-btn active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> {{.Post.Likes}}</span>
                 </div>
             </div>
         </article>
         {{end}}
     {{else}}
-        <p class="empty-state">Aucun post aimé.</p>
+        <div class="empty-state">
+            <div class="empty-icon">&#10084;&#65039;</div>
+            <h3>Aucun post soutenu</h3>
+            <p>Soutiens les posts qui te parlent !</p>
+            <a href="/" class="btn-primary">Voir le feed</a>
+        </div>
     {{end}}
     </div>
 </div>

@@ -1,23 +1,28 @@
 {{define "base"}}
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum{{if .Title}} - {{.Title}}{{end}}</title>
+    <title>Le Vestiaire{{if .Title}} — {{.Title}}{{end}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
-    <script>
-    (function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
-    </script>
 </head>
 <body>
-    <header class="header">
-        <div class="container header-inner">
-            <a href="/" class="logo">forum</a>
+    <canvas id="pitchCanvas" class="pitch-canvas"></canvas>
 
-            <div class="nav-search">
-                <span class="nav-search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-                <input type="text" class="nav-search-input" id="searchInput" placeholder="Rechercher" autocomplete="off">
+    <header class="navbar" id="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-logo">
+                <img src="/static/img/logo.png" alt="Le Vestiaire" class="logo-icon" width="36" height="36">
+                <span class="logo-text">LE VESTIAIRE</span>
+            </a>
+
+            <div class="navbar-search" id="navSearchWrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un sujet..." autocomplete="off">
                 <div class="search-dropdown" id="searchDropdown"></div>
             </div>
 
@@ -25,39 +30,57 @@
                 <span></span><span></span><span></span>
             </button>
 
-            <nav class="nav" id="nav">
-                <button class="theme-toggle" id="themeToggle" aria-label="Changer de theme">
-                    <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                    <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                </button>
+            <nav class="navbar-actions" id="navActions">
                 {{if .User}}
-                    <a href="/post/create" class="nav-btn-primary">Poster</a>
-                    <div class="nav-user" id="navUser">
-                        <span class="nav-user-avatar">{{slice .User.Username 0 1}}</span>
-                        <span>{{.User.Username}}</span>
+                    <a href="/post/create" class="btn-new-post">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Nouveau post
+                    </a>
+                    <div class="navbar-user" id="navUser">
+                        <div class="user-avatar-sm">{{slice .User.Username 0 1}}</div>
                         <div class="user-dropdown" id="userDropdown">
-                            <a href="/my-posts" class="dropdown-item">Mes posts</a>
-                            <a href="/liked-posts" class="dropdown-item">Posts aimes</a>
+                            <div class="dropdown-header">
+                                <div class="user-avatar-sm">{{slice .User.Username 0 1}}</div>
+                                <div>
+                                    <div class="dropdown-username">{{.User.Username}}</div>
+                                    <div class="dropdown-role">{{.User.Role}}</div>
+                                </div>
+                            </div>
                             <div class="dropdown-divider"></div>
-                            <form action="/logout" method="POST" class="inline-form">
-                                <button type="submit" class="dropdown-item">Deconnexion</button>
+                            <a href="/my-posts" class="dropdown-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                Mes publications
+                            </a>
+                            <a href="/liked-posts" class="dropdown-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                Posts soutenus
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <form action="/logout" method="POST">
+                                <button type="submit" class="dropdown-item dropdown-item-danger">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                    Quitter le vestiaire
+                                </button>
                             </form>
                         </div>
                     </div>
                 {{else}}
-                    <a href="/login" class="nav-btn-outline">Connexion</a>
-                    <a href="/register" class="nav-btn-primary">S'inscrire</a>
+                    <a href="/login" class="btn-login">Connexion</a>
+                    <a href="/register" class="btn-register">S'inscrire</a>
                 {{end}}
             </nav>
         </div>
     </header>
 
-    <main class="container main-content">
+    <main class="main-container">
         {{template "content" .}}
     </main>
 
     <footer class="footer">
-        <div class="container"><p>forum &copy; 2026</p></div>
+        <div class="footer-inner">
+            <span class="footer-logo">LE VESTIAIRE</span>
+            <span class="footer-copy">Ici on parle foot. &copy; 2026</span>
+        </div>
     </footer>
 
     <div class="toast-container" id="toastContainer"></div>

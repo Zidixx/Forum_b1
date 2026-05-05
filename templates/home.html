@@ -1,93 +1,137 @@
 {{template "base" .}}
 {{define "content"}}
-<button class="filter-toggle" onclick="document.querySelector('.sidebar').classList.toggle('active')">Filtrer par categorie</button>
-
 <div class="home-layout">
-    <aside class="sidebar">
-        <nav class="sidebar-nav">
-            <a href="/?sort=new" class="sidebar-nav-item{{if eq .Sort "new"}} active{{end}}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                Accueil
-            </a>
-            <a href="/?sort=hot" class="sidebar-nav-item{{if eq .Sort "hot"}} active{{end}}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-                Populaire
-            </a>
-            <a href="/?sort=top" class="sidebar-nav-item{{if eq .Sort "top"}} active{{end}}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                Top
-            </a>
-            <a href="/?sort=discussed" class="sidebar-nav-item{{if eq .Sort "discussed"}} active{{end}}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Plus discutes
-            </a>
-        </nav>
+    <!-- Left Sidebar -->
+    <aside class="sidebar-left" id="sidebarLeft">
+        <div class="sidebar-section">
+            <div class="sidebar-logo-block">
+                <img src="/static/img/logo.png" alt="Le Vestiaire" class="sidebar-ball" width="48" height="48">
+                <span class="sidebar-brand">LE VESTIAIRE</span>
+                <span class="sidebar-tagline">Ici on parle foot.</span>
+            </div>
+        </div>
 
-        <h4 class="sidebar-title">Categories</h4>
-        <ul class="category-list">
-            <li><a href="/?sort={{.Sort}}" class="category-link{{if not .CategoryFilter}} active{{end}}">Toutes</a></li>
-            {{range .Categories}}
-            <li><a href="/?category={{.ID}}&sort={{$.Sort}}" class="category-link{{if eq (printf "%d" .ID) $.CategoryFilter}} active{{end}}">{{.Name}}</a></li>
-            {{end}}
-        </ul>
+        <div class="sidebar-section">
+            <h4 class="sidebar-heading">Catégories</h4>
+            <nav class="sidebar-nav">
+                <a href="/?sort={{.Sort}}" class="sidebar-link{{if and (not .CategoryFilter) (not .LeagueFilter)}} active{{end}}">
+                    <span class="sidebar-icon">&#9917;</span> Tout le foot
+                </a>
+                {{range .Categories}}
+                <a href="/?category={{.ID}}&sort={{$.Sort}}" class="sidebar-link{{if eq (printf "%d" .ID) $.CategoryFilter}} active{{end}}">
+                    <span class="sidebar-icon">{{if eq .Name "Actualité"}}&#128240;{{else if eq .Name "Transferts"}}&#128176;{{else if eq .Name "Résultats"}}&#127942;{{else}}&#128172;{{end}}</span>
+                    {{.Name}}
+                </a>
+                {{end}}
+            </nav>
+        </div>
+
+        <div class="sidebar-section">
+            <h4 class="sidebar-heading">Ligues</h4>
+            <nav class="sidebar-nav">
+                {{range leagues}}
+                <a href="/?league={{.Slug}}&sort={{$.Sort}}" class="sidebar-link league-link{{if eq .Slug $.LeagueFilter}} active{{end}}">
+                    <span class="sidebar-icon">{{.Flag}}</span> {{.Name}}
+                </a>
+                {{end}}
+            </nav>
+        </div>
 
         {{if .User}}
-        <a href="/post/create" class="sidebar-new-post">Poster</a>
+        <div class="sidebar-bottom">
+            <a href="/post/create" class="btn-sidebar-post">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nouveau post
+            </a>
+        </div>
         {{end}}
     </aside>
 
-    <section class="posts-section">
-        <div class="feed">
+    <!-- Center Feed -->
+    <section class="feed-section">
+        <div class="sort-bar" id="sortBar">
+            <a href="/?sort=new{{if .LeagueFilter}}&league={{.LeagueFilter}}{{end}}{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-tab{{if eq .Sort "new"}} active{{end}}" data-sort="new">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Récent
+            </a>
+            <a href="/?sort=hot{{if .LeagueFilter}}&league={{.LeagueFilter}}{{end}}{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-tab{{if eq .Sort "hot"}} active{{end}}" data-sort="hot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                Tendance
+            </a>
+            <a href="/?sort=top{{if .LeagueFilter}}&league={{.LeagueFilter}}{{end}}{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-tab{{if eq .Sort "top"}} active{{end}}" data-sort="top">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                Top
+            </a>
+            <a href="/?sort=discussed{{if .LeagueFilter}}&league={{.LeagueFilter}}{{end}}{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-tab{{if eq .Sort "discussed"}} active{{end}}" data-sort="discussed">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Débats chauds
+            </a>
+            <div class="sort-indicator" id="sortIndicator"></div>
+        </div>
+
+        <div class="feed" id="feed">
         {{if .Posts}}
             {{range .Posts}}
-            <article class="post-card" onclick="if(!event.target.closest('button,a,.action-btn,.share-dropdown'))window.location='/post/{{.Post.ID}}'">
-                <div class="post-card-top">
-                    <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
-                    <div class="post-card-body">
-                        <div class="post-card-header">
-                            <span class="post-author-name">{{.Post.Author}}</span>
-                            <span class="post-dot">·</span>
-                            <span class="post-author-handle">@{{.Post.Author}}</span>
-                            <span class="post-dot">·</span>
-                            <span class="post-timestamp">{{timeAgo .Post.CreatedAt}}</span>
-                        </div>
-                        <h3 class="post-card-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
-                        <p class="post-card-text">{{.Excerpt}}</p>
+            <article class="post-card" data-tilt onclick="if(!event.target.closest('button,a,.action-btn,.share-menu'))window.location='/post/{{.Post.ID}}'">
+                <div class="post-card-shine"></div>
+                <div class="post-card-inner">
+                    {{if .Post.League}}
+                    <div class="post-league-badge" style="background:{{leagueColor .Post.League}}">
+                        {{leagueFlag .Post.League}} {{leagueLabel .Post.League}}
+                    </div>
+                    {{end}}
 
-                        {{if .Post.ImagePath}}
-                        <div class="post-card-image">
-                            <img src="/static/uploads/{{.Post.ImagePath}}" alt="" loading="lazy">
-                        </div>
-                        {{end}}
+                    {{if .Post.Categories}}
+                    <div class="post-categories">
+                        {{range .Post.Categories}}<span class="cat-badge">{{.Name}}</span>{{end}}
+                    </div>
+                    {{end}}
 
-                        {{if .Post.Categories}}
-                        <div class="post-card-tags">
-                            {{range .Post.Categories}}<span class="badge">{{.Name}}</span>{{end}}
+                    <div class="post-meta-row">
+                        <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
+                        <div class="post-meta-info">
+                            <span class="post-author">{{.Post.Author}}</span>
+                            <span class="post-time">{{timeAgo .Post.CreatedAt}}</span>
                         </div>
-                        {{end}}
+                    </div>
 
-                        <div class="action-bar">
-                            <a href="/post/{{.Post.ID}}#comments" class="action-btn comment-action" onclick="event.stopPropagation()">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                                <span>{{.Post.CommentCount}}</span>
-                            </a>
-                            <button class="action-btn repost-action{{if .Post.UserReposted}} active{{end}}" data-post-id="{{.Post.ID}}" onclick="event.stopPropagation();handleRepost(this)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                                <span class="repost-count">{{.Post.Reposts}}</span>
+                    <h3 class="post-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
+                    <p class="post-excerpt">{{.Excerpt}}</p>
+
+                    {{if .Post.ImagePath}}
+                    <div class="post-image">
+                        <img src="/static/uploads/{{.Post.ImagePath}}" alt="" loading="lazy">
+                    </div>
+                    {{end}}
+
+                    <div class="post-actions">
+                        <a href="/post/{{.Post.ID}}#comments" class="action-btn" onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <span class="action-count" data-count="comment">{{.Post.CommentCount}}</span>
+                        </a>
+                        <button class="action-btn repost-btn{{if .Post.UserReposted}} active{{end}}" data-post-id="{{.Post.ID}}" onclick="event.stopPropagation();handleRepost(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                            <span class="action-count repost-count">{{.Post.Reposts}}</span>
+                        </button>
+                        <button class="action-btn like-btn{{if eq .Post.UserVote "like"}} active{{end}}" data-post-id="{{.Post.ID}}" onclick="event.stopPropagation();handleLike(this,'post')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            <span class="action-count like-count">{{.Post.Likes}}</span>
+                        </button>
+                        <div class="share-wrapper">
+                            <button class="action-btn share-btn" onclick="event.stopPropagation();toggleShare(this)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
                             </button>
-                            <button class="action-btn like-action{{if eq .Post.UserVote "like"}} active{{end}}" data-post-id="{{.Post.ID}}" onclick="event.stopPropagation();handleLike(this,'post')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                <span class="like-count">{{.Post.Likes}}</span>
-                            </button>
-                            <div style="position:relative">
-                                <button class="action-btn share-action" onclick="event.stopPropagation();toggleShare(this)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                            <div class="share-menu" data-post-id="{{.Post.ID}}" data-post-title="{{.Post.Title}}">
+                                <button class="share-item" onclick="event.stopPropagation();copyLink('/post/'+this.parentElement.dataset.postId)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                    Copier le lien
                                 </button>
-                                <div class="share-dropdown" data-post-id="{{.Post.ID}}" data-post-title="{{.Post.Title}}">
-                                    <button class="share-option" onclick="event.stopPropagation();copyLink('/post/'+this.parentElement.dataset.postId)">Copier le lien</button>
-                                    <button class="share-option" onclick="event.stopPropagation();shareTwitter(this.parentElement.dataset.postTitle,'/post/'+this.parentElement.dataset.postId)">Partager sur X</button>
-                                    <button class="share-option" onclick="event.stopPropagation();shareWhatsApp(this.parentElement.dataset.postTitle,'/post/'+this.parentElement.dataset.postId)">Partager sur WhatsApp</button>
-                                </div>
+                                <button class="share-item" onclick="event.stopPropagation();shareTwitter(this.parentElement.dataset.postTitle,'/post/'+this.parentElement.dataset.postId)">
+                                    Partager sur X
+                                </button>
+                                <button class="share-item" onclick="event.stopPropagation();shareWhatsApp(this.parentElement.dataset.postTitle,'/post/'+this.parentElement.dataset.postId)">
+                                    Partager sur WhatsApp
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -95,22 +139,35 @@
             </article>
             {{end}}
         {{else}}
-            <p class="empty-state">Aucun post pour le moment.</p>
+            <div class="empty-state">
+                <div class="empty-icon">&#9917;</div>
+                <h3>Aucune publication pour le moment</h3>
+                <p>Le terrain est vide ! Sois le premier à lancer le débat.</p>
+                {{if .User}}
+                <a href="/post/create" class="btn-primary">Créer un post</a>
+                {{else}}
+                <a href="/register" class="btn-primary">Rejoins le vestiaire</a>
+                {{end}}
+            </div>
         {{end}}
         </div>
     </section>
 
+    <!-- Right Sidebar -->
     <aside class="sidebar-right">
         {{if .Trending}}
-        <div class="widget">
-            <div class="widget-header">Tendances</div>
+        <div class="widget glass-card">
+            <div class="widget-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                Sujets chauds
+            </div>
             <div class="widget-body">
                 {{range $i, $p := .Trending}}
                 <a href="/post/{{$p.ID}}" class="trending-item">
                     <span class="trending-rank">{{add $i 1}}</span>
-                    <div class="trending-content">
+                    <div class="trending-info">
                         <div class="trending-title">{{$p.Title}}</div>
-                        <div class="trending-meta">{{$p.Likes}} likes · {{$p.Author}}</div>
+                        <div class="trending-stats">{{$p.Likes}} soutiens &middot; {{$p.CommentCount}} réactions</div>
                     </div>
                 </a>
                 {{end}}
@@ -118,16 +175,45 @@
         </div>
         {{end}}
 
-        <div class="widget">
-            <div class="widget-header">Regles</div>
+        <div class="widget glass-card">
+            <div class="widget-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Stats communauté
+            </div>
             <div class="widget-body">
-                <div class="rule-item"><span class="rule-number">1</span> Restez respectueux</div>
-                <div class="rule-item"><span class="rule-number">2</span> Pas de spam</div>
-                <div class="rule-item"><span class="rule-number">3</span> Contenu original</div>
-                <div class="rule-item"><span class="rule-number">4</span> Bonne categorie</div>
-                <div class="rule-item"><span class="rule-number">5</span> Pas de contenu NSFW</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <span class="stat-value scoreboard" data-target="{{.TotalUsers}}">{{.TotalUsers}}</span>
+                        <span class="stat-label">Joueurs</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value scoreboard" data-target="{{.TotalPosts}}">{{.TotalPosts}}</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value scoreboard" data-target="{{.TotalComments}}">{{.TotalComments}}</span>
+                        <span class="stat-label">Réactions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget glass-card">
+            <div class="widget-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                Règles du vestiaire
+            </div>
+            <div class="widget-body">
+                <div class="rule-item"><span class="rule-num">1</span> Respect entre supporters</div>
+                <div class="rule-item"><span class="rule-num">2</span> Pas de spam ni pub</div>
+                <div class="rule-item"><span class="rule-num">3</span> Sources pour les infos</div>
+                <div class="rule-item"><span class="rule-num">4</span> Bonne catégorie et ligue</div>
+                <div class="rule-item"><span class="rule-num">5</span> Fair-play toujours</div>
             </div>
         </div>
     </aside>
 </div>
+
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 {{end}}

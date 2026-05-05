@@ -57,6 +57,15 @@ func (s *PostService) GetByCategory(categoryID int, currentUserID int) ([]models
 	return posts, nil
 }
 
+func (s *PostService) GetByLeague(league string, currentUserID int) ([]models.Post, error) {
+	posts, err := s.postRepo.FindByLeague(league)
+	if err != nil {
+		return nil, err
+	}
+	s.enrichPosts(posts, currentUserID)
+	return posts, nil
+}
+
 func (s *PostService) GetByUser(userID int) ([]models.Post, error) {
 	posts, err := s.postRepo.FindByUserID(userID)
 	if err != nil {
@@ -107,6 +116,10 @@ func (s *PostService) GetCategoryIDs(postID int) ([]int, error) {
 
 func (s *PostService) Excerpt(content string) string {
 	return s.postRepo.Excerpt(content, 200)
+}
+
+func (s *PostService) CountAll() (int, error) {
+	return s.postRepo.CountAll()
 }
 
 func (s *PostService) enrichPosts(posts []models.Post, currentUserID int) {

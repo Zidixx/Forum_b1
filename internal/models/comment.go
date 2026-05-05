@@ -6,6 +6,7 @@ type Comment struct {
 	ID        int
 	PostID    int
 	UserID    int
+	ParentID  int
 	Content   string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -13,4 +14,5 @@ type Comment struct {
 	Likes     int
 	Dislikes  int
 	UserVote  string
+	Replies   []Comment
 }

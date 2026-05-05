@@ -1,39 +1,40 @@
 {{template "base" .}}
 {{define "content"}}
 <div class="search-page">
-    <div class="search-page-header">
-        <h1 class="page-title">Recherche</h1>
-    </div>
+    <h1 class="page-heading">Recherche</h1>
 
-    <form action="/search" method="GET" style="margin-bottom:24px">
-        <input type="text" name="q" class="search-page-input" value="{{.Query}}" placeholder="Rechercher des posts..." autofocus>
+    <form action="/search" method="GET" class="search-form-page">
+        <div class="search-input-lg-wrap">
+            <svg class="search-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" name="q" class="search-input-lg" value="{{.Query}}" placeholder="Rechercher un sujet, une équipe, un joueur..." autofocus>
+        </div>
     </form>
 
     {{if .Query}}
-    <p style="color:var(--text-muted);margin-bottom:16px;font-size:0.9rem">
+    <p class="search-results-count">
         {{if .Posts}}{{len .Posts}} résultat(s) pour "{{.Query}}"{{else}}Aucun résultat pour "{{.Query}}"{{end}}
     </p>
     {{end}}
 
     <div class="feed">
     {{range .Posts}}
-    <article class="post-card" onclick="window.location='/post/{{.Post.ID}}'">
-        <div class="post-card-top">
-            <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
-            <div class="post-card-body">
-                <div class="post-card-header">
-                    <span class="post-author-name">{{.Post.Author}}</span>
-                    <span class="post-dot">&middot;</span>
-                    <span class="post-timestamp">{{timeAgo .Post.CreatedAt}}</span>
+    <article class="post-card" data-tilt onclick="window.location='/post/{{.Post.ID}}'">
+        <div class="post-card-shine"></div>
+        <div class="post-card-inner">
+            <div class="post-meta-row">
+                <div class="post-avatar">{{slice .Post.Author 0 1}}</div>
+                <div class="post-meta-info">
+                    <span class="post-author">{{.Post.Author}}</span>
+                    <span class="post-time">{{timeAgo .Post.CreatedAt}}</span>
                 </div>
-                <h3 class="post-card-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
-                <p class="post-card-text">{{.Excerpt}}</p>
-                {{if .Post.Categories}}
-                <div class="post-card-tags">
-                    {{range .Post.Categories}}<span class="badge">{{.Name}}</span>{{end}}
-                </div>
-                {{end}}
             </div>
+            <h3 class="post-title"><a href="/post/{{.Post.ID}}">{{.Post.Title}}</a></h3>
+            <p class="post-excerpt">{{.Excerpt}}</p>
+            {{if .Post.Categories}}
+            <div class="post-categories">
+                {{range .Post.Categories}}<span class="cat-badge">{{.Name}}</span>{{end}}
+            </div>
+            {{end}}
         </div>
     </article>
     {{end}}

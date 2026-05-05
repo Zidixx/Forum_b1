@@ -16,6 +16,23 @@ import (
 	"strings"
 )
 
+// League represents a football league for template rendering
+type League struct {
+	Slug string
+	Name string
+	Flag string
+}
+
+var leagues = []League{
+	{"ligue1", "Ligue 1", "\U0001F1EB\U0001F1F7"},
+	{"premier-league", "Premier League", "\U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006E\U000E0067\U000E007F"},
+	{"la-liga", "La Liga", "\U0001F1EA\U0001F1F8"},
+	{"bundesliga", "Bundesliga", "\U0001F1E9\U0001F1EA"},
+	{"serie-a", "Serie A", "\U0001F1EE\U0001F1F9"},
+	{"champions-league", "Champions League", "\U0001F3C6"},
+	{"europa-league", "Europa League", "\U0001F3C6"},
+}
+
 func main() {
 	baseDir := "."
 	if len(os.Args) > 1 {
@@ -63,8 +80,51 @@ func main() {
 	funcMap := htmltemplate.FuncMap{
 		"timeAgo": utils.TimeAgo,
 		"upper":   strings.ToUpper,
+		"lower":   strings.ToLower,
 		"add": func(a, b int) int {
 			return a + b
+		},
+		"contains": func(slice []int, val int) bool {
+			for _, v := range slice {
+				if v == val {
+					return true
+				}
+			}
+			return false
+		},
+		"leagues": func() []League {
+			return leagues
+		},
+		"leagueLabel": func(slug string) string {
+			for _, l := range leagues {
+				if l.Slug == slug {
+					return l.Name
+				}
+			}
+			return slug
+		},
+		"leagueFlag": func(slug string) string {
+			for _, l := range leagues {
+				if l.Slug == slug {
+					return l.Flag
+				}
+			}
+			return ""
+		},
+		"leagueColor": func(slug string) string {
+			colors := map[string]string{
+				"ligue1":           "#091c3e",
+				"premier-league":   "#3d195b",
+				"la-liga":          "#ee8707",
+				"bundesliga":       "#d20515",
+				"serie-a":          "#024494",
+				"champions-league": "#1a3a5c",
+				"europa-league":    "#f47920",
+			}
+			if c, ok := colors[slug]; ok {
+				return c
+			}
+			return "#333333"
 		},
 	}
 
@@ -77,8 +137,9 @@ func main() {
 	// Handlers
 	errHandler := handler.NewErrorHandler(tmpl)
 	authHandler := handler.NewAuthHandler(authService, tmpl, errHandler)
-	homeHandler := handler.NewHomeHandler(postService, catRepo, tmpl, errHandler)
-	postHandler := handler.NewPostHandler(postService, uploadService, catRepo, tmpl, errHandler)
+	oauthHandler := handler.NewOAuthHandler(authService, userRepo, sessionRepo, errHandler)
+	homeHandler := handler.NewHomeHandler(postService, catRepo, userRepo, commentRepo, tmpl, errHandler)
+	postHandler := handler.NewPostHandler(postService, uploadService, commentService, catRepo, tmpl, errHandler)
 	commentHandler := handler.NewCommentHandler(commentService, tmpl, errHandler)
 	reactionHandler := handler.NewReactionHandler(reactionService, repostRepo, errHandler)
 	profileHandler := handler.NewProfileHandler(postService, tmpl, errHandler)
@@ -169,6 +230,12 @@ func main() {
 
 	mux.Handle("/logout", userCtx(http.HandlerFunc(authHandler.Logout)))
 
+	// OAuth routes
+	mux.Handle("/auth/google/login", http.HandlerFunc(oauthHandler.GoogleLogin))
+	mux.Handle("/auth/google/callback", http.HandlerFunc(oauthHandler.GoogleCallback))
+	mux.Handle("/auth/github/login", http.HandlerFunc(oauthHandler.GitHubLogin))
+	mux.Handle("/auth/github/callback", http.HandlerFunc(oauthHandler.GitHubCallback))
+
 	mux.Handle("/my-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.MyPosts))))
 	mux.Handle("/liked-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.LikedPosts))))
 
@@ -179,7 +246,9 @@ func main() {
 
 	protectedMux := middleware.RateLimiter(mux)
 
-	fmt.Printf("Forum démarré en HTTPS sur https://localhost:%s (Avec Rate Limiting Anti-DDoS)\n", port)
+	fmt.Printf("\n  LE VESTIAIRE - Forum Football\n")
+	fmt.Printf("  Démarré en HTTPS sur https://localhost:%s\n", port)
+	fmt.Printf("  Rate Limiting Anti-DDoS actif\n\n")
 
 	err = http.ListenAndServeTLS(":"+port, "./tls/server.crt", "./tls/server.key", protectedMux)
 	if err != nil {

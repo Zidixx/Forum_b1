@@ -1,11 +1,11 @@
 {{template "base" .}}
 {{define "content"}}
 <div class="form-page">
-    <div class="form-card card">
-        <h1 class="page-title">Modifier le post</h1>
+    <div class="form-card glass-card">
+        <h1 class="form-title">Modifier le post</h1>
 
         {{if .Errors}}
-        <div class="alert alert-error">{{range .Errors}}<p>{{.}}</p>{{end}}</div>
+        <div class="alert alert-error">{{range .Errors}}{{.}} {{end}}</div>
         {{end}}
 
         <form action="/post/edit/{{.Post.ID}}" method="POST" enctype="multipart/form-data">
@@ -13,37 +13,56 @@
                 <label for="title" class="form-label">Titre</label>
                 <input type="text" id="title" name="title" class="form-input" value="{{.Post.Title}}" required maxlength="200">
             </div>
+
             <div class="form-group">
                 <label for="content" class="form-label">Contenu</label>
-                <textarea id="content" name="content" class="form-textarea" rows="8" required>{{.Post.Content}}</textarea>
+                <textarea id="content" name="content" class="form-textarea" rows="6" required>{{.Post.Content}}</textarea>
             </div>
-            <div class="form-group">
-                <label class="form-label">Catégories</label>
-                <div class="checkbox-group">
-                    {{$selected := .SelectedCats}}
-                    {{range .Categories}}
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="categories" value="{{.ID}}"
-                            {{range $selected}}{{if eq . $.Categories}}checked{{end}}{{end}}>
-                        {{.Name}}
-                    </label>
-                    {{end}}
+
+            <div class="form-row">
+                <div class="form-group form-group-half">
+                    <label class="form-label">Catégorie</label>
+                    <div class="checkbox-grid">
+                        {{range .Categories}}
+                        <label class="checkbox-card">
+                            <input type="checkbox" name="categories" value="{{.ID}}" {{if $.SelectedCats}}{{if contains $.SelectedCats .ID}}checked{{end}}{{end}}>
+                            <span class="checkbox-card-inner">{{.Name}}</span>
+                        </label>
+                        {{end}}
+                    </div>
+                </div>
+                <div class="form-group form-group-half">
+                    <label for="league" class="form-label">Ligue</label>
+                    <select id="league" name="league" class="form-select">
+                        <option value="">Aucune ligue</option>
+                        {{range leagues}}
+                        <option value="{{.Slug}}" {{if eq .Slug $.Post.League}}selected{{end}}>{{.Flag}} {{.Name}}</option>
+                        {{end}}
+                    </select>
                 </div>
             </div>
+
             {{if .Post.ImagePath}}
             <div class="form-group">
                 <label class="form-label">Image actuelle</label>
                 <img src="/static/uploads/{{.Post.ImagePath}}" alt="" class="preview-image">
             </div>
             {{end}}
+
             <div class="form-group">
                 <label for="image" class="form-label">Nouvelle image (optionnel)</label>
-                <input type="file" id="image" name="image" class="form-input" accept="image/jpeg,image/png,image/gif">
-                <small class="form-hint">JPEG, PNG ou GIF — Max 20 Mo</small>
+                <div class="file-upload" id="fileUpload">
+                    <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif">
+                    <div class="file-upload-label">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span>Changer l'image</span>
+                    </div>
+                </div>
             </div>
+
             <div class="form-actions">
-                <a href="/post/{{.Post.ID}}" class="btn btn-secondary">Annuler</a>
-                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="/post/{{.Post.ID}}" class="btn-secondary">Annuler</a>
+                <button type="submit" class="btn-primary btn-glow">Enregistrer</button>
             </div>
         </form>
     </div>

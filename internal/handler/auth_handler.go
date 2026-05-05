@@ -39,6 +39,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
+	favoriteTeam := r.FormValue("favorite_team")
 
 	errs := utils.ValidateRegister(email, username, password, confirmPassword)
 	if errs.HasErrors() {
@@ -52,7 +53,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, serviceErrs := h.authService.Register(email, username, password)
+	_, serviceErrs := h.authService.Register(email, username, password, favoriteTeam)
 	if serviceErrs != nil && serviceErrs.HasErrors() {
 		data := map[string]interface{}{
 			"Errors":   serviceErrs,

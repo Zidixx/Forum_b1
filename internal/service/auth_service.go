@@ -18,11 +18,12 @@ func NewAuthService(userRepo *repository.UserRepository, sessionRepo *repository
 	return &AuthService{userRepo: userRepo, sessionRepo: sessionRepo}
 }
 
-func (s *AuthService) Register(email, username, password string) (*models.User, utils.ValidationErrors) {
+func (s *AuthService) Register(email, username, password, favoriteTeam string) (*models.User, utils.ValidationErrors) {
 	errs := make(utils.ValidationErrors)
 
 	email = strings.TrimSpace(email)
 	username = strings.TrimSpace(username)
+	favoriteTeam = strings.TrimSpace(favoriteTeam)
 
 	if s.userRepo.EmailExists(email) {
 		errs["email"] = "Cet email est déjà utilisé"
@@ -45,6 +46,7 @@ func (s *AuthService) Register(email, username, password string) (*models.User, 
 		Username:     username,
 		PasswordHash: hash,
 		Role:         "user",
+		FavoriteTeam: favoriteTeam,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {

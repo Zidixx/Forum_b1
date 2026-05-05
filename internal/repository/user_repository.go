@@ -15,8 +15,8 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 
 func (r *UserRepository) Create(user *models.User) error {
 	result, err := r.db.Exec(
-		"INSERT INTO users (email, username, password_hash, role) VALUES (?, ?, ?, ?)",
-		user.Email, user.Username, user.PasswordHash, user.Role,
+		"INSERT INTO users (email, username, password_hash, role, favorite_team) VALUES (?, ?, ?, ?, ?)",
+		user.Email, user.Username, user.PasswordHash, user.Role, user.FavoriteTeam,
 	)
 	if err != nil {
 		return err
@@ -29,9 +29,9 @@ func (r *UserRepository) Create(user *models.User) error {
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	user := &models.User{}
 	err := r.db.QueryRow(
-		"SELECT id, email, username, password_hash, role, created_at, updated_at FROM users WHERE email = ?",
+		"SELECT id, email, username, password_hash, role, favorite_team, created_at, updated_at FROM users WHERE email = ?",
 		email,
-	).Scan(&user.ID, &user.Email, &user.Username, &user.PasswordHash, &user.Role, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.Email, &user.Username, &user.PasswordHash, &user.Role, &user.FavoriteTeam, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +41,9 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 func (r *UserRepository) FindByUsername(username string) (*models.User, error) {
 	user := &models.User{}
 	err := r.db.QueryRow(
-		"SELECT id, email, username, password_hash, role, created_at, updated_at FROM users WHERE username = ?",
+		"SELECT id, email, username, password_hash, role, favorite_team, created_at, updated_at FROM users WHERE username = ?",
 		username,
-	).Scan(&user.ID, &user.Email, &user.Username, &user.PasswordHash, &user.Role, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.Email, &user.Username, &user.PasswordHash, &user.Role, &user.FavoriteTeam, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +53,9 @@ func (r *UserRepository) FindByUsername(username string) (*models.User, error) {
 func (r *UserRepository) FindByID(id int) (*models.User, error) {
 	user := &models.User{}
 	err := r.db.QueryRow(
-		"SELECT id, email, username, password_hash, role, created_at, updated_at FROM users WHERE id = ?",
+		"SELECT id, email, username, password_hash, role, favorite_team, created_at, updated_at FROM users WHERE id = ?",
 		id,
-	).Scan(&user.ID, &user.Email, &user.Username, &user.PasswordHash, &user.Role, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.Email, &user.Username, &user.PasswordHash, &user.Role, &user.FavoriteTeam, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -72,4 +72,10 @@ func (r *UserRepository) UsernameExists(username string) bool {
 	var count int
 	r.db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", username).Scan(&count)
 	return count > 0
+}
+
+func (r *UserRepository) CountAll() (int, error) {
+	var count int
+	err := r.db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	return count, err
 }

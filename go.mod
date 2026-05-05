@@ -7,3 +7,5 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.42
 	golang.org/x/crypto v0.50.0
 )
+
+require golang.org/x/oauth2 v0.36.0 // indirect

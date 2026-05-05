@@ -1,11 +1,11 @@
 {{template "base" .}}
 {{define "content"}}
 <div class="form-page">
-    <div class="form-card card">
-        <h1 class="page-title">Modifier le commentaire</h1>
+    <div class="form-card glass-card">
+        <h1 class="form-title">Modifier le commentaire</h1>
 
         {{if .Errors}}
-        <div class="alert alert-error">{{range .Errors}}<p>{{.}}</p>{{end}}</div>
+        <div class="alert alert-error">{{range .Errors}}{{.}} {{end}}</div>
         {{end}}
 
         <form action="/comment/edit/{{.Comment.ID}}" method="POST">
@@ -13,8 +13,8 @@
                 <textarea name="content" class="form-textarea" rows="5" required>{{.Comment.Content}}</textarea>
             </div>
             <div class="form-actions">
-                <a href="/post/{{.Comment.PostID}}" class="btn btn-secondary">Annuler</a>
-                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="/post/{{.Comment.PostID}}" class="btn-secondary">Annuler</a>
+                <button type="submit" class="btn-primary">Enregistrer</button>
             </div>
         </form>
     </div>

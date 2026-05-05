@@ -8,6 +8,7 @@ type User struct {
 	Username     string
 	PasswordHash string
 	Role         string
+	FavoriteTeam string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

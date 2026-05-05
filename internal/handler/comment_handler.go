@@ -40,6 +40,9 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	parentIDStr := r.FormValue("parent_id")
+	parentID, _ := strconv.Atoi(parentIDStr) // defaults to 0
+
 	content := r.FormValue("content")
 	errs := utils.ValidateComment(content)
 	if errs.HasErrors() {
@@ -48,9 +51,10 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comment := &models.Comment{
-		PostID:  postID,
-		UserID:  user.ID,
-		Content: strings.TrimSpace(content),
+		PostID:   postID,
+		UserID:   user.ID,
+		ParentID: parentID,
+		Content:  strings.TrimSpace(content),
 	}
 
 	if err := h.commentService.Create(comment); err != nil {

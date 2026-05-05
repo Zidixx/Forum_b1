@@ -13,15 +13,16 @@ import (
 )
 
 type PostHandler struct {
-	postService   *service.PostService
-	uploadService *service.UploadService
-	catRepo       *repository.CategoryRepository
-	tmpl          Renderer
-	errHandler    *ErrorHandler
+	postService    *service.PostService
+	uploadService  *service.UploadService
+	commentService *service.CommentService
+	catRepo        *repository.CategoryRepository
+	tmpl           Renderer
+	errHandler     *ErrorHandler
 }
 
-func NewPostHandler(postService *service.PostService, uploadService *service.UploadService, catRepo *repository.CategoryRepository, tmpl Renderer, errHandler *ErrorHandler) *PostHandler {
-	return &PostHandler{postService: postService, uploadService: uploadService, catRepo: catRepo, tmpl: tmpl, errHandler: errHandler}
+func NewPostHandler(postService *service.PostService, uploadService *service.UploadService, commentService *service.CommentService, catRepo *repository.CategoryRepository, tmpl Renderer, errHandler *ErrorHandler) *PostHandler {
+	return &PostHandler{postService: postService, uploadService: uploadService, commentService: commentService, catRepo: catRepo, tmpl: tmpl, errHandler: errHandler}
 }
 
 func (h *PostHandler) ShowCreate(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +55,7 @@ func (h *PostHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	title := r.FormValue("title")
 	content := r.FormValue("content")
+	league := r.FormValue("league")
 	categoryStrs := r.Form["categories"]
 
 	var categoryIDs []int
@@ -82,11 +84,12 @@ func (h *PostHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if errs.HasErrors() {
 		categories, _ := h.catRepo.FindAll()
 		data := map[string]interface{}{
-			"User":        user,
-			"Errors":      errs,
-			"Title":       title,
-			"Content":     content,
-			"Categories":  categories,
+			"User":         user,
+			"Errors":       errs,
+			"Title":        title,
+			"Content":      content,
+			"League":       league,
+			"Categories":   categories,
 			"SelectedCats": categoryIDs,
 		}
 		w.WriteHeader(http.StatusBadRequest)
@@ -99,6 +102,7 @@ func (h *PostHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Title:     strings.TrimSpace(title),
 		Content:   strings.TrimSpace(content),
 		ImagePath: imagePath,
+		League:    strings.TrimSpace(league),
 	}
 
 	if err := h.postService.Create(post, categoryIDs); err != nil {
@@ -132,6 +136,9 @@ func (h *PostHandler) Show(w http.ResponseWriter, r *http.Request) {
 		h.errHandler.NotFound(w, r)
 		return
 	}
+
+	comments, _ := h.commentService.GetByPostID(id, userID)
+	post.Comments = comments
 
 	data := map[string]interface{}{
 		"User": user,
@@ -174,9 +181,9 @@ func (h *PostHandler) ShowEdit(w http.ResponseWriter, r *http.Request) {
 	categories, _ := h.catRepo.FindAll()
 
 	data := map[string]interface{}{
-		"User":        user,
-		"Post":        post,
-		"Categories":  categories,
+		"User":         user,
+		"Post":         post,
+		"Categories":   categories,
 		"SelectedCats": catIDs,
 	}
 
@@ -216,6 +223,7 @@ func (h *PostHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	title := r.FormValue("title")
 	content := r.FormValue("content")
+	league := r.FormValue("league")
 	categoryStrs := r.Form["categories"]
 
 	var categoryIDs []int
@@ -243,10 +251,10 @@ func (h *PostHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if errs.HasErrors() {
 		categories, _ := h.catRepo.FindAll()
 		data := map[string]interface{}{
-			"User":        user,
-			"Post":        post,
-			"Errors":      errs,
-			"Categories":  categories,
+			"User":         user,
+			"Post":         post,
+			"Errors":       errs,
+			"Categories":   categories,
 			"SelectedCats": categoryIDs,
 		}
 		w.WriteHeader(http.StatusBadRequest)
@@ -256,6 +264,7 @@ func (h *PostHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	post.Title = strings.TrimSpace(title)
 	post.Content = strings.TrimSpace(content)
+	post.League = strings.TrimSpace(league)
 
 	if err := h.postService.Update(post, categoryIDs); err != nil {
 		h.errHandler.InternalError(w, r, err)
