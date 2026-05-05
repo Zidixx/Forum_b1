@@ -13,10 +13,17 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/oauth2"
 )
+
+// oauthStates stocke les states OAuth cote serveur (evite les problemes de cookies avec les certificats auto-signes)
+var oauthStates = struct {
+	sync.Mutex
+	m map[string]time.Time
+}{m: make(map[string]time.Time)}
 
 type OAuthHandler struct {
 	authService *service.AuthService
@@ -79,11 +86,34 @@ func NewOAuthHandler(
 func (h *OAuthHandler) GoogleEnabled() bool { return h.googleCfg != nil }
 func (h *OAuthHandler) GitHubEnabled() bool { return h.githubCfg != nil }
 
-// generateState creates a random state token for CSRF protection
+// generateState creates a random state token and stores it server-side
 func generateState() string {
 	b := make([]byte, 16)
 	rand.Read(b)
-	return hex.EncodeToString(b)
+	state := hex.EncodeToString(b)
+
+	oauthStates.Lock()
+	// Nettoyage des states expires (> 5 min)
+	for k, t := range oauthStates.m {
+		if time.Since(t) > 5*time.Minute {
+			delete(oauthStates.m, k)
+		}
+	}
+	oauthStates.m[state] = time.Now()
+	oauthStates.Unlock()
+
+	return state
+}
+
+// validateState verifie et consomme un state OAuth
+func validateState(state string) bool {
+	oauthStates.Lock()
+	defer oauthStates.Unlock()
+	if _, ok := oauthStates.m[state]; ok {
+		delete(oauthStates.m, state)
+		return true
+	}
+	return false
 }
 
 // ============================================
@@ -96,14 +126,6 @@ func (h *OAuthHandler) GoogleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	state := generateState()
-	http.SetCookie(w, &http.Cookie{
-		Name:     "oauth_state",
-		Value:    state,
-		Path:     "/",
-		MaxAge:   300,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
 	http.Redirect(w, r, h.googleCfg.AuthCodeURL(state), http.StatusTemporaryRedirect)
 }
 
@@ -113,14 +135,11 @@ func (h *OAuthHandler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify state
-	stateCookie, err := r.Cookie("oauth_state")
-	if err != nil || stateCookie.Value != r.URL.Query().Get("state") {
+	// Verify state (server-side)
+	if !validateState(r.URL.Query().Get("state")) {
 		h.errHandler.Error(w, r, http.StatusForbidden, "État OAuth invalide")
 		return
 	}
-	// Clear state cookie
-	http.SetCookie(w, &http.Cookie{Name: "oauth_state", Path: "/", MaxAge: -1})
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
@@ -166,14 +185,6 @@ func (h *OAuthHandler) GitHubLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	state := generateState()
-	http.SetCookie(w, &http.Cookie{
-		Name:     "oauth_state",
-		Value:    state,
-		Path:     "/",
-		MaxAge:   300,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
 	http.Redirect(w, r, h.githubCfg.AuthCodeURL(state), http.StatusTemporaryRedirect)
 }
 
@@ -183,13 +194,11 @@ func (h *OAuthHandler) GitHubCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify state
-	stateCookie, err := r.Cookie("oauth_state")
-	if err != nil || stateCookie.Value != r.URL.Query().Get("state") {
+	// Verify state (server-side)
+	if !validateState(r.URL.Query().Get("state")) {
 		h.errHandler.Error(w, r, http.StatusForbidden, "État OAuth invalide")
 		return
 	}
-	http.SetCookie(w, &http.Cookie{Name: "oauth_state", Path: "/", MaxAge: -1})
 
 	code := r.URL.Query().Get("code")
 	if code == "" {

@@ -14,6 +14,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 // League represents a football league for template rendering
@@ -34,6 +36,9 @@ var leagues = []League{
 }
 
 func main() {
+	// Charge .env si présent (OAuth keys, etc.)
+	godotenv.Load()
+
 	baseDir := "."
 	if len(os.Args) > 1 {
 		baseDir = os.Args[1]

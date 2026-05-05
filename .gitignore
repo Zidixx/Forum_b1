@@ -1,5 +1,5 @@
 # Compiled binary
-web
+/web
 
 # SQLite runtime files
 data/forum.db-shm
