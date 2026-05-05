@@ -72,7 +72,6 @@ func (s *AuthService) Login(identifier, password string) (*models.User, *models.
 		return nil, nil, fmt.Errorf("identifiants incorrects")
 	}
 
-	// Invalidate existing sessions
 	s.sessionRepo.DeleteByUserID(user.ID)
 
 	session := &models.Session{

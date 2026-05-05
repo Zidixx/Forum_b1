@@ -1,7 +1,6 @@
 {{template "base" .}}
 {{define "content"}}
 <div class="home-layout">
-    <!-- Left Sidebar -->
     <aside class="sidebar-left" id="sidebarLeft">
         <div class="sidebar-section">
             <div class="sidebar-logo-block">
@@ -47,7 +46,6 @@
         {{end}}
     </aside>
 
-    <!-- Center Feed -->
     <section class="feed-section">
         <div class="sort-bar" id="sortBar">
             <a href="/?sort=new{{if .LeagueFilter}}&league={{.LeagueFilter}}{{end}}{{if .CategoryFilter}}&category={{.CategoryFilter}}{{end}}" class="sort-tab{{if eq .Sort "new"}} active{{end}}" data-sort="new">
@@ -153,7 +151,6 @@
         </div>
     </section>
 
-    <!-- Right Sidebar -->
     <aside class="sidebar-right">
         {{if .Trending}}
         <div class="widget glass-card">
@@ -214,6 +211,5 @@
     </aside>
 </div>
 
-<!-- Mobile sidebar overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 {{end}}

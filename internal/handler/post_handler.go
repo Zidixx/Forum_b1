@@ -68,7 +68,6 @@ func (h *PostHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	errs := utils.ValidatePost(title, content, categoryIDs)
 
-	// Handle image upload
 	var imagePath string
 	file, header, err := r.FormFile("image")
 	if err == nil {
@@ -236,7 +235,6 @@ func (h *PostHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	errs := utils.ValidatePost(title, content, categoryIDs)
 
-	// Handle new image
 	file, header, fileErr := r.FormFile("image")
 	if fileErr == nil {
 		defer file.Close()

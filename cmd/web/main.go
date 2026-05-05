@@ -17,7 +17,6 @@ import (
 
 )
 
-// League represents a football league for template rendering
 type League struct {
 	Slug string
 	Name string
@@ -47,7 +46,6 @@ func main() {
 	staticDir := filepath.Join(baseDir, "static")
 	uploadDir := filepath.Join(staticDir, "uploads")
 
-	// Database
 	database, err := db.Open(dbPath)
 	if err != nil {
 		log.Fatalf("database open: %v", err)
@@ -61,7 +59,6 @@ func main() {
 		log.Fatalf("seed: %v", err)
 	}
 
-	// Repositories
 	userRepo := repository.NewUserRepository(database)
 	sessionRepo := repository.NewSessionRepository(database)
 	postRepo := repository.NewPostRepository(database)
@@ -70,14 +67,12 @@ func main() {
 	reactionRepo := repository.NewReactionRepository(database)
 	repostRepo := repository.NewRepostRepository(database)
 
-	// Services
 	authService := service.NewAuthService(userRepo, sessionRepo)
 	postService := service.NewPostService(postRepo, catRepo, reactionRepo, repostRepo)
 	commentService := service.NewCommentService(commentRepo, reactionRepo)
 	reactionService := service.NewReactionService(reactionRepo)
 	uploadService := service.NewUploadService(uploadDir)
 
-	// Template functions
 	funcMap := htmltemplate.FuncMap{
 		"timeAgo": utils.TimeAgo,
 		"upper":   strings.ToUpper,
@@ -129,13 +124,11 @@ func main() {
 		},
 	}
 
-	// Templates
 	tmpl, err := handler.NewTemplateMap(templatesDir, funcMap)
 	if err != nil {
 		log.Fatalf("templates: %v", err)
 	}
 
-	// Handlers
 	errHandler := handler.NewErrorHandler(tmpl)
 	authHandler := handler.NewAuthHandler(authService, tmpl, errHandler)
 	homeHandler := handler.NewHomeHandler(postService, catRepo, userRepo, commentRepo, tmpl, errHandler)
@@ -145,19 +138,15 @@ func main() {
 	profileHandler := handler.NewProfileHandler(postService, tmpl, errHandler)
 	searchHandler := handler.NewSearchHandler(postService, tmpl, errHandler)
 
-	// Middleware
 	userCtx := middleware.UserContext(authService)
 	requireAuth := middleware.RequireAuth(authService)
 	guestOnly := middleware.RedirectIfAuth(authService)
 
-	// Router
 	mux := http.NewServeMux()
 
-	// Static files
 	fs := http.FileServer(http.Dir(staticDir))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// Public routes (with user context)
 	mux.Handle("/", userCtx(http.HandlerFunc(homeHandler.Home)))
 	mux.Handle("/post/", userCtx(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
@@ -179,7 +168,6 @@ func main() {
 		}
 	})))
 
-	// Comment routes
 	mux.Handle("/comment/", userCtx(requireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		switch {
@@ -198,14 +186,11 @@ func main() {
 		}
 	}))))
 
-	// Repost route
 	mux.Handle("/repost/", userCtx(requireAuth(http.HandlerFunc(reactionHandler.Repost))))
 
-	// Search routes
 	mux.Handle("/search", userCtx(http.HandlerFunc(searchHandler.Search)))
 	mux.Handle("/api/search", userCtx(http.HandlerFunc(searchHandler.APISearch)))
 
-	// Auth routes
 	mux.Handle("/register", userCtx(guestOnly(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:

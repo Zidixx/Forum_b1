@@ -41,7 +41,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	parentIDStr := r.FormValue("parent_id")
-	parentID, _ := strconv.Atoi(parentIDStr) // defaults to 0
+	parentID, _ := strconv.Atoi(parentIDStr)
 
 	content := r.FormValue("content")
 	errs := utils.ValidateComment(content)

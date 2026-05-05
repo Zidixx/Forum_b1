@@ -48,7 +48,6 @@ func (r *CommentRepository) FindByPostID(postID int) ([]models.Comment, error) {
 		all = append(all, c)
 	}
 
-	// Build nested structure: top-level comments with their replies
 	var topLevel []models.Comment
 	replyMap := make(map[int][]models.Comment)
 
@@ -92,7 +91,6 @@ func (r *CommentRepository) Update(comment *models.Comment) error {
 }
 
 func (r *CommentRepository) Delete(id int) error {
-	// Delete replies first, then the comment
 	r.db.Exec("DELETE FROM comments WHERE parent_id = ?", id)
 	_, err := r.db.Exec("DELETE FROM comments WHERE id = ?", id)
 	return err

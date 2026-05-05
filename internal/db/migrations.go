@@ -16,7 +16,6 @@ func Migrate(db *sql.DB, schemaPath string) error {
 		return fmt.Errorf("execute schema: %w", err)
 	}
 
-	// Upgrade existing databases: add new columns (errors ignored if already exist)
 	db.Exec("ALTER TABLE posts ADD COLUMN league TEXT NOT NULL DEFAULT ''")
 	db.Exec("ALTER TABLE comments ADD COLUMN parent_id INTEGER NOT NULL DEFAULT 0")
 	db.Exec("ALTER TABLE users ADD COLUMN favorite_team TEXT NOT NULL DEFAULT ''")

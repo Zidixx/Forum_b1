@@ -24,6 +24,6 @@ COPY --from=builder /app/static ./static
 COPY --from=builder /app/sql ./sql
 COPY --from=builder /app/tls ./tls
 
-EXPOSE 8080
+EXPOSE 8443
 
 CMD ["./forum-app"]

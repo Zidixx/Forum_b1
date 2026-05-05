@@ -14,7 +14,6 @@ func NewErrorHandler(tmpl Renderer) *ErrorHandler {
 	return &ErrorHandler{tmpl: tmpl}
 }
 
-// Football-themed error messages
 var errorMessages = map[int]string{
 	404: "HORS-JEU ! Cette page est sortie du terrain.",
 	403: "CARTON ROUGE ! Tu n'as pas ton pass VIP pour cette zone.",

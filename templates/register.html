@@ -20,7 +20,6 @@
                 <h1 class="auth-brand">LE VESTIAIRE</h1>
             </div>
 
-            <!-- Stepper -->
             <div class="stepper" id="stepper">
                 <div class="step active" data-step="1"><span class="step-num">1</span><span class="step-label">Identité</span></div>
                 <div class="step-line"></div>
@@ -34,8 +33,7 @@
             {{end}}
 
             <form action="/register" method="POST" id="registerForm" class="auth-form">
-                <!-- Step 1: Identity -->
-                <div class="form-step active" data-step="1">
+                    <div class="form-step active" data-step="1">
                     <h2 class="step-title">Choisis ton pseudo</h2>
                     <div class="form-group">
                         <div class="input-icon-wrapper">
@@ -54,8 +52,7 @@
                     <button type="button" class="btn-primary btn-full" onclick="nextStep(2)">Suivant</button>
                 </div>
 
-                <!-- Step 2: Security -->
-                <div class="form-step" data-step="2">
+                    <div class="form-step" data-step="2">
                     <h2 class="step-title">Sécurise ton compte</h2>
                     <div class="form-group">
                         <div class="input-icon-wrapper">
@@ -81,8 +78,7 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Team -->
-                <div class="form-step" data-step="3">
+                    <div class="form-step" data-step="3">
                     <h2 class="step-title">Ton club de coeur</h2>
                     <p class="step-desc">Optionnel — Choisis ton équipe favorite</p>
                     <div class="team-grid" id="teamGrid">

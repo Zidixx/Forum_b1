@@ -12,8 +12,6 @@ func NewReactionRepository(db *sql.DB) *ReactionRepository {
 	return &ReactionRepository{db: db}
 }
 
-// Post reactions
-
 func (r *ReactionRepository) GetPostReaction(userID, postID int) (string, error) {
 	var reactionType string
 	err := r.db.QueryRow(
@@ -54,8 +52,6 @@ func (r *ReactionRepository) CountPostReactions(postID int) (likes int, dislikes
 	err = r.db.QueryRow("SELECT COUNT(*) FROM post_reactions WHERE post_id = ? AND type = 'dislike'", postID).Scan(&dislikes)
 	return
 }
-
-// Comment reactions
 
 func (r *ReactionRepository) GetCommentReaction(userID, commentID int) (string, error) {
 	var reactionType string

@@ -98,7 +98,6 @@ func (h *HomeHandler) Home(w http.ResponseWriter, r *http.Request) {
 
 	trending, _ := h.postService.GetTrending(5, userID)
 
-	// Community stats
 	totalPosts, _ := h.postService.CountAll()
 	totalUsers, _ := h.userRepo.CountAll()
 	totalComments, _ := h.commentRepo.CountAll()

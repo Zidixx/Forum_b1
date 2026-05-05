@@ -1,8 +1,3 @@
-/* LE VESTIAIRE — Forum Football JS */
-
-// ============================================
-// PITCH CANVAS BACKGROUND
-// ============================================
 (function drawPitch() {
     const canvas = document.getElementById('pitchCanvas');
     if (!canvas) return;
@@ -25,26 +20,19 @@
         const pw = Math.min(w * 0.8, 900), ph = Math.min(h * 0.7, 600);
         const left = cx - pw / 2, top_ = cy - ph / 2;
 
-        // Pitch outline
         ctx.strokeRect(left, top_, pw, ph);
-        // Center line
         ctx.beginPath(); ctx.moveTo(cx, top_); ctx.lineTo(cx, top_ + ph); ctx.stroke();
-        // Center circle
         ctx.beginPath(); ctx.arc(cx, cy, ph * 0.15, 0, Math.PI * 2); ctx.stroke();
-        // Center dot
         ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
 
-        // Penalty areas
         const paW = pw * 0.16, paH = ph * 0.44;
         ctx.strokeRect(left, cy - paH / 2, paW, paH);
         ctx.strokeRect(left + pw - paW, cy - paH / 2, paW, paH);
 
-        // Goal areas
         const gaW = pw * 0.06, gaH = ph * 0.2;
         ctx.strokeRect(left, cy - gaH / 2, gaW, gaH);
         ctx.strokeRect(left + pw - gaW, cy - gaH / 2, gaW, gaH);
 
-        // Corner arcs
         const cr = pw * 0.02;
         [
             [left, top_, 0, Math.PI / 2],
@@ -60,9 +48,6 @@
     window.addEventListener('resize', draw);
 })();
 
-// ============================================
-// TOAST NOTIFICATION SYSTEM
-// ============================================
 const Toast = {
     container: null,
     init() { this.container = document.getElementById('toastContainer'); },
@@ -83,9 +68,6 @@ const Toast = {
     info(msg) { this.show(msg, 'info'); }
 };
 
-// ============================================
-// CARD 3D TILT + LIGHT REFLECTION
-// ============================================
 function initCardTilt() {
     document.querySelectorAll('[data-tilt]').forEach(card => {
         card.addEventListener('mousemove', (e) => {
@@ -108,9 +90,6 @@ function initCardTilt() {
     });
 }
 
-// ============================================
-// LIKE PARTICLES
-// ============================================
 function spawnParticles(button, color) {
     const rect = button.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -137,9 +116,6 @@ function spawnParticles(button, color) {
     }
 }
 
-// ============================================
-// SCOREBOARD COUNTER ANIMATION
-// ============================================
 function animateScoreboards() {
     document.querySelectorAll('.scoreboard').forEach(el => {
         const target = parseInt(el.dataset.target) || 0;
@@ -159,9 +135,6 @@ function animateScoreboards() {
     });
 }
 
-// ============================================
-// SORT BAR INDICATOR
-// ============================================
 function initSortIndicator() {
     const bar = document.getElementById('sortBar');
     if (!bar) return;
@@ -177,9 +150,6 @@ function initSortIndicator() {
     window.addEventListener('resize', position);
 }
 
-// ============================================
-// LIVE SEARCH
-// ============================================
 function initSearch() {
     const input = document.getElementById('searchInput');
     const dropdown = document.getElementById('searchDropdown');
@@ -227,9 +197,6 @@ function initSearch() {
     });
 }
 
-// ============================================
-// AJAX REACTIONS
-// ============================================
 function handleLike(btn, type) {
     const postId = btn.dataset.postId;
     fetch('/post/react/' + postId, {
@@ -240,7 +207,6 @@ function handleLike(btn, type) {
     .then(r => { if (r.status === 401) { window.location = '/login'; throw new Error('auth'); } return r.json(); })
     .then(data => {
         if (!data.success) return;
-        // Update all like buttons for this post
         document.querySelectorAll('.like-btn[data-post-id="' + postId + '"]').forEach(b => {
             b.classList.toggle('active', data.userVote === 'like');
             const countEl = b.querySelector('.like-count');
@@ -347,9 +313,6 @@ function animateCount(el, target) {
     }, 100);
 }
 
-// ============================================
-// SHARE
-// ============================================
 function toggleShare(btn) {
     const menu = btn.closest('.share-wrapper').querySelector('.share-menu');
     document.querySelectorAll('.share-menu.active').forEach(m => { if (m !== menu) m.classList.remove('active'); });
@@ -374,16 +337,12 @@ function shareWhatsApp(title, path) {
     document.querySelectorAll('.share-menu.active').forEach(m => m.classList.remove('active'));
 }
 
-// Close share menus on outside click
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.share-wrapper')) {
         document.querySelectorAll('.share-menu.active').forEach(m => m.classList.remove('active'));
     }
 });
 
-// ============================================
-// COMMENT FORM
-// ============================================
 function initCommentForm() {
     const textarea = document.getElementById('commentText');
     const submit = document.getElementById('commentSubmit');
@@ -394,9 +353,6 @@ function initCommentForm() {
     });
 }
 
-// ============================================
-// REPLY FORM
-// ============================================
 function toggleReplyForm(btn, commentId, postId) {
     const body = btn.closest('.comment-body');
     let existing = body.querySelector('.reply-form');
@@ -415,9 +371,6 @@ function toggleReplyForm(btn, commentId, postId) {
     form.querySelector('textarea').focus();
 }
 
-// ============================================
-// USER DROPDOWN
-// ============================================
 function initUserDropdown() {
     const navUser = document.getElementById('navUser');
     const dropdown = document.getElementById('userDropdown');
@@ -433,9 +386,6 @@ function initUserDropdown() {
     });
 }
 
-// ============================================
-// HAMBURGER MENU
-// ============================================
 function initHamburger() {
     const hamburger = document.getElementById('hamburger');
     const sidebar = document.getElementById('sidebarLeft');
@@ -457,11 +407,7 @@ function initHamburger() {
     }
 }
 
-// ============================================
-// REGISTER STEPPER
-// ============================================
 function nextStep(step) {
-    // Validate current step
     if (step === 2) {
         const username = document.getElementById('reg-username');
         const email = document.getElementById('reg-email');
@@ -522,9 +468,6 @@ function goToStep(step) {
     if (target) target.classList.add('active');
 }
 
-// ============================================
-// PASSWORD STRENGTH
-// ============================================
 function initPasswordStrength() {
     const password = document.getElementById('reg-password');
     const fill = document.getElementById('strengthFill');
@@ -556,9 +499,6 @@ function initPasswordStrength() {
     });
 }
 
-// ============================================
-// IMAGE UPLOAD PREVIEW
-// ============================================
 function initFileUpload() {
     const upload = document.getElementById('fileUpload');
     if (!upload) return;
@@ -569,7 +509,6 @@ function initFileUpload() {
         const file = input.files[0];
         if (!file) return;
 
-        // Remove old preview if any
         const oldPreview = upload.querySelector('.upload-preview');
         if (oldPreview) oldPreview.remove();
 
@@ -593,34 +532,23 @@ function removeUpload(btn) {
     const input = upload.querySelector('input[type="file"]');
     const preview = upload.querySelector('.upload-preview');
     const label = upload.querySelector('.file-upload-label');
-    // Reset file input
     input.value = '';
     if (preview) preview.remove();
     if (label) label.style.display = '';
 }
 
-// ============================================
-// TICKER DUPLICATION (for seamless loop)
-// ============================================
 function initTicker() {
     const track = document.getElementById('tickerTrack');
     if (!track) return;
-    // Duplicate content for seamless loop
     track.innerHTML += track.innerHTML;
 }
 
-// ============================================
-// UTILITY
-// ============================================
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// ============================================
-// INIT
-// ============================================
 document.addEventListener('DOMContentLoaded', () => {
     initCardTilt();
     initSortIndicator();
@@ -633,7 +561,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTicker();
     animateScoreboards();
 
-    // Close menus on Escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.share-menu.active, .user-dropdown.active, .search-dropdown.active').forEach(m => m.classList.remove('active'));

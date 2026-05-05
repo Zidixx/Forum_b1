@@ -31,7 +31,6 @@ func init() {
 	}()
 }
 
-// Limite à 50 requêtes par seconde
 func RateLimiter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := r.RemoteAddr
