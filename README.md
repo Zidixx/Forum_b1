@@ -21,46 +21,6 @@ cd Forum_b1
 go mod tidy
 ```
 
-## Configuration OAuth (Google & GitHub)
-
-La connexion via Google et GitHub necessite des cles OAuth. Sans ces cles, le forum fonctionne normalement mais les boutons "Se connecter avec Google/GitHub" ne marcheront pas.
-
-### Etape 1 : Recuperer le fichier `.env`
-
-Demande le fichier `.env` au proprietaire du projet (par message prive, jamais via git).
-
-### Etape 2 : Placer le fichier `.env`
-
-Copie le fichier `.env` a la racine du projet (au meme niveau que `go.mod`) :
-
-```
-Forum_b1/
-  .env          <-- ici
-  go.mod
-  cmd/
-  internal/
-  ...
-```
-
-### Etape 3 : Verifier le contenu
-
-Le fichier `.env` doit contenir :
-
-```env
-# OAuth Google
-GOOGLE_CLIENT_ID=xxxxx
-GOOGLE_CLIENT_SECRET=xxxxx
-
-# OAuth GitHub
-GITHUB_CLIENT_ID=xxxxx
-GITHUB_CLIENT_SECRET=xxxxx
-
-# Base URL pour les callbacks OAuth
-OAUTH_REDIRECT_BASE=https://localhost:8443
-```
-
-> Un fichier `.env.example` est fourni dans le repo comme reference (sans les vraies cles).
-
 ## Certificat TLS (HTTPS)
 
 Le serveur demarre en HTTPS. Le dossier `tls/` contient deja les certificats auto-signes (`server.crt` et `server.key`). Rien a faire.
@@ -107,7 +67,6 @@ data/                     Base SQLite (creee automatiquement)
 ## Fonctionnalites
 
 - Inscription / Connexion (email + mot de passe)
-- Connexion OAuth (Google, GitHub)
 - Creer, modifier, supprimer des posts
 - Commenter les posts (avec reponses imbriquees)
 - Like / Dislike sur posts et commentaires
@@ -125,8 +84,6 @@ data/                     Base SQLite (creee automatiquement)
 | GET/POST | `/register` | Inscription |
 | GET/POST | `/login` | Connexion |
 | POST | `/logout` | Deconnexion |
-| GET | `/auth/google/login` | Connexion via Google |
-| GET | `/auth/github/login` | Connexion via GitHub |
 | GET/POST | `/post/create` | Creer un post |
 | GET | `/post/{id}` | Detail d'un post |
 | GET/POST | `/post/edit/{id}` | Modifier un post |

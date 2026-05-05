@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/joho/godotenv"
 )
 
 // League represents a football league for template rendering
@@ -36,9 +35,6 @@ var leagues = []League{
 }
 
 func main() {
-	// Charge .env si présent (OAuth keys, etc.)
-	godotenv.Load()
-
 	baseDir := "."
 	if len(os.Args) > 1 {
 		baseDir = os.Args[1]
@@ -142,7 +138,6 @@ func main() {
 	// Handlers
 	errHandler := handler.NewErrorHandler(tmpl)
 	authHandler := handler.NewAuthHandler(authService, tmpl, errHandler)
-	oauthHandler := handler.NewOAuthHandler(authService, userRepo, sessionRepo, errHandler)
 	homeHandler := handler.NewHomeHandler(postService, catRepo, userRepo, commentRepo, tmpl, errHandler)
 	postHandler := handler.NewPostHandler(postService, uploadService, commentService, catRepo, tmpl, errHandler)
 	commentHandler := handler.NewCommentHandler(commentService, tmpl, errHandler)
@@ -234,12 +229,6 @@ func main() {
 	}))))
 
 	mux.Handle("/logout", userCtx(http.HandlerFunc(authHandler.Logout)))
-
-	// OAuth routes
-	mux.Handle("/auth/google/login", http.HandlerFunc(oauthHandler.GoogleLogin))
-	mux.Handle("/auth/google/callback", http.HandlerFunc(oauthHandler.GoogleCallback))
-	mux.Handle("/auth/github/login", http.HandlerFunc(oauthHandler.GitHubLogin))
-	mux.Handle("/auth/github/callback", http.HandlerFunc(oauthHandler.GitHubCallback))
 
 	mux.Handle("/my-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.MyPosts))))
 	mux.Handle("/liked-posts", userCtx(requireAuth(http.HandlerFunc(profileHandler.LikedPosts))))
